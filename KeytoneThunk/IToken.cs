@@ -1,18 +1,18 @@
 ﻿namespace KeytoneThunk;
 public interface IToken;
-public struct Note : IToken
+public readonly struct Note : IToken
 {
-    public int Pitch;
-    public int Hertz;
-    public int Octave;
+    public readonly int Pitch;
+    public readonly int Hertz;
+    public readonly int Octave;
 }
-public struct ChangeToInstrument : IToken
+public readonly struct ChangeToInstrument : IToken
 {
-    public int Midi;
+    public readonly int Midi;
 }
-public struct MorphInstrument : IToken
+public readonly struct MorphInstrument : IToken
 {
-    public byte MorphDigit;
+    public readonly byte MorphDigit;
 }
 public struct Silence : IToken;
 public struct VolumeUp : IToken;

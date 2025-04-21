@@ -2,7 +2,7 @@
 
 public class MusicPlayer
 {
-    public Instrument CurrentInstrument;
+    public Instrument CurrentInstrument { get; private set; }
     public int Volume { get; }
     
     public void Play(TokenStream tokens)
