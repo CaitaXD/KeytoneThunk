@@ -1,19 +1,20 @@
 ### IToken
-- ### Note
-  - Fields:
-    - readonly int Pitch
-    - readonly int Hertz
-    - readonly int Octave
-- ### ChangeToInstrument
-  - Fields:
-    - readonly int Midi
-- ### MorphInstrument
-  - Fields:
-    - readonly byte MorphDigit
-- ### Silence
-- ### VolumeUp
-- ### RepeatLastNote
-- ### OctaveUp
+- Implementations:
+  - ### Note
+    - Fields:
+      - readonly int Pitch
+      - readonly int Hertz
+      - readonly int Octave
+  - ### ChangeToInstrument
+    - Fields:
+      - readonly int Midi
+  - ### MorphInstrument
+    - Fields:
+      - readonly byte MorphDigit
+  - ### Silence
+  - ### VolumeUp
+  - ### RepeatLastNote
+  - ### OctaveUp
 
 ### Instrument
 - Properties:
