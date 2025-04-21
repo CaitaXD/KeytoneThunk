@@ -1,33 +1,33 @@
-### IToken
+### IToken (Interface)
 - Implementations:
-  - ### Note
+  - ### Note (Structured Data)
     - Fields:
       - readonly int Pitch
       - readonly int Hertz
       - readonly int Octave
-  - ### ChangeToInstrument
+  - ### ChangeToInstrument (Structured Data)
     - Fields:
       - readonly int Midi
-  - ### MorphInstrument
+  - ### MorphInstrument (Structured Data)
     - Fields:
       - readonly byte MorphDigit
-  - ### Silence
-  - ### VolumeUp
-  - ### RepeatLastNote
-  - ### OctaveUp
+  - ### Silence (Structured Data)
+  - ### VolumeUp (Structured Data)
+  - ### RepeatLastNote (Structured Data)
+  - ### OctaveUp (Structured Data)
 
-### Instrument
-- Properties:
-  - int Midi { get; }
+### Instrument (Structured Data)
+- Fields:
+  - readonly int Midi
 
-### MusicPlayer
+### MusicPlayer (Class)
 - Properties:
   - Instrument CurrentInstrument { get; }
   - int Volume { get; }
 - Methods:
   - void Play(TokenStream tokens)
 
-### TokenStream
+### TokenStream (Class)
 - Methods:
   - bool MoveNext()
   - bool TryPeekBack(out IToken token)
@@ -35,6 +35,6 @@
 - Properties:
   - IToken Current { get; }
 
-### Parser
+### Parser (Class)
 - Methods:
   - IEnumerator\<IToken> Parse(string input)
