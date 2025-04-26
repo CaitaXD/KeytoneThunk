@@ -2,45 +2,43 @@
 
 namespace KeytoneThunk;
 
-public class TokenStream : IEnumerator<IToken>, IEnumerable<IToken>
+public sealed class TokenStream(IEnumerable<IToken> tokens) : IEnumerator<IToken>, IEnumerable<IToken>
 {
-    public TokenStream(IEnumerator<IToken> tokens)
-    {
-        
-    }
+    readonly IEnumerator<IToken> _enumerator = tokens.GetEnumerator();
 
     public bool MoveNext()
     {
-        throw new NotImplementedException();
+        _last = Current;
+        if (_enumerator.MoveNext())
+        {
+            Current = _enumerator.Current;
+            return true;
+        }
+        return false;
     }
 
     public bool TryPeekBack(out IToken token)
     {
-        throw new NotImplementedException();
+        if (_last == null)
+        {
+            token = new IToken.Silence();
+            return false;
+        }
+
+        token = _last;
+        return true;
     }
 
-    public void Reset()
-    {
-        throw new NotImplementedException();
-    }
-    
-    public IToken Current => throw new NotImplementedException();
+    public void Reset() => _enumerator.Reset();
+    public IToken Current { get; private set; } = new IToken.Silence();
+    IToken? _last = null;
 
     // C# -------------------------------------------------------------------------------------
-    
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-    
-    object? IEnumerator.Current => Current;
-    public IEnumerator<IToken> GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+    public void Dispose() => _enumerator.Dispose();
+
+    object? IEnumerator.Current => Current;
+
+    public IEnumerator<IToken> GetEnumerator() => this;
+    IEnumerator IEnumerable.GetEnumerator() => this;
 }
