@@ -30,6 +30,7 @@ partial class Form1
     private void InitializeComponent()
     {
         button1 = new System.Windows.Forms.Button();
+        rtxtboxUserInput = new System.Windows.Forms.RichTextBox();
         SuspendLayout();
         // 
         // button1
@@ -38,19 +39,30 @@ partial class Form1
         button1.Name = "button1";
         button1.Size = new System.Drawing.Size(213, 86);
         button1.TabIndex = 0;
-        button1.Text = "button1";
+        button1.Text = "Pray Musicus";
         button1.UseVisualStyleBackColor = true;
         button1.Click += button1_Click;
+        // 
+        // rtxtboxUserInput
+        // 
+        rtxtboxUserInput.Location = new System.Drawing.Point(155, 53);
+        rtxtboxUserInput.Name = "rtxtboxUserInput";
+        rtxtboxUserInput.Size = new System.Drawing.Size(542, 260);
+        rtxtboxUserInput.TabIndex = 1;
+        rtxtboxUserInput.Text = "";
         // 
         // Form1
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         ClientSize = new System.Drawing.Size(800, 450);
+        Controls.Add(rtxtboxUserInput);
         Controls.Add(button1);
         Text = "Form1";
         ResumeLayout(false);
     }
+
+    private System.Windows.Forms.RichTextBox rtxtboxUserInput;
 
     private System.Windows.Forms.Button button1;
 

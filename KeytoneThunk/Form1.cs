@@ -13,9 +13,10 @@ public partial class Form1 : Form
     {
         _player.Volume = 50;
         _player.CurrentOctave = 4;
+        _player.CurrentInstrument = Instrument.AcousticGrandPiano;
         var parser = new Parser();
         var tokens = new TokenStream(parser.Parse(
-            "CDEFGAB ?CDEFGAB ?CDEFGAB ?CDEFGAB"
+            rtxtboxUserInput.Text
         ));
         _player.Play(tokens);
     }
