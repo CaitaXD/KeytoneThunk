@@ -2,9 +2,10 @@
 
 namespace KeytoneThunk;
 
-public sealed class TokenStream(IEnumerable<IToken> tokens) : IEnumerator<IToken>, IEnumerable<IToken>
+public sealed class KeytoneInstructionStream(IEnumerable<IKeytoneInstruction> tokens) 
+    : IEnumerator<IKeytoneInstruction>, IEnumerable<IKeytoneInstruction>
 {
-    readonly IEnumerator<IToken> _enumerator = tokens.GetEnumerator();
+    readonly IEnumerator<IKeytoneInstruction> _enumerator = tokens.GetEnumerator();
 
     public bool MoveNext()
     {
@@ -17,21 +18,21 @@ public sealed class TokenStream(IEnumerable<IToken> tokens) : IEnumerator<IToken
         return false;
     }
 
-    public bool TryPeekBack(out IToken token)
+    public bool TryGetPreviousInstruction(out IKeytoneInstruction keytoneInstruction)
     {
         if (_last == null)
         {
-            token = new IToken.Silence();
+            keytoneInstruction = new IKeytoneInstruction.Silence();
             return false;
         }
 
-        token = _last;
+        keytoneInstruction = _last;
         return true;
     }
 
     public void Reset() => _enumerator.Reset();
-    public IToken Current { get; private set; } = new IToken.Silence();
-    IToken? _last = null;
+    public IKeytoneInstruction Current { get; private set; } = new IKeytoneInstruction.Silence();
+    IKeytoneInstruction? _last = null;
 
     // C# -------------------------------------------------------------------------------------
 
@@ -39,6 +40,6 @@ public sealed class TokenStream(IEnumerable<IToken> tokens) : IEnumerator<IToken
 
     object? IEnumerator.Current => Current;
 
-    public IEnumerator<IToken> GetEnumerator() => this;
+    public IEnumerator<IKeytoneInstruction> GetEnumerator() => this;
     IEnumerator IEnumerable.GetEnumerator() => this;
 }

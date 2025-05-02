@@ -20,42 +20,65 @@ public class MusicPlayer : IDisposable
         }
     }
 
-    public void Play(TokenStream tokens)
+    public void Play(KeytoneInstructionStream keytoneInstructions)
     {
-        _ = PlayAsync(tokens);
+        _ = PlayAsync(keytoneInstructions);
     }
 
-    public async ValueTask PlayAsync(TokenStream tokens)
+    public async ValueTask PlayAsync(KeytoneInstructionStream keytoneInstructions)
     {
-        foreach (var token in tokens)
+        foreach (var token in keytoneInstructions)
         {
             switch (token)
             {
-                case IToken.MorphInstrument { MorphDigit: > 9 }:
-                    throw new ArgumentOutOfRangeException(nameof(IToken.MorphInstrument.MorphDigit));
-                case IToken.MorphInstrument morphInstrument:
-                    CurrentInstrument = new Instrument(CurrentInstrument.Midi + morphInstrument.MorphDigit);
+                case IKeytoneInstruction.MorphInstrument { MorphDigit: > 9 }:
+                    throw new ArgumentOutOfRangeException(nameof(IKeytoneInstruction.MorphInstrument.MorphDigit));
+                case IKeytoneInstruction.MorphInstrument morphInstrument:
+                    MorphInstrument(morphInstrument);
                     break;
-                case IToken.ChangeToInstrument changeToInstrument:
-                    CurrentInstrument = new Instrument(changeToInstrument.Midi);
+                case IKeytoneInstruction.ChangeToInstrument changeToInstrument:
+                    ChangeInstrument(changeToInstrument);
                     break;
-                case IToken.RepeatLastNote when tokens.TryPeekBack(out var last) && last is IToken.Note lastNote:
+                case IKeytoneInstruction.RepeatLastNote when keytoneInstructions.TryGetPreviousInstruction(out var last) && last is IKeytoneInstruction.Note lastNote:
                     await PlayNote(NoteDuration, lastNote.MidiNote, CurrentOctave);
                     break;
-                case IToken.RepeatLastNote or IToken.Silence:
+                case IKeytoneInstruction.RepeatLastNote or IKeytoneInstruction.Silence:
                     await Task.Delay(NoteDuration);
                     break;
-                case IToken.OctaveUp:
-                    CurrentOctave = Math.Clamp(CurrentOctave + 1, 0, 8);
+                case IKeytoneInstruction.OctaveUp: 
+                    OctaveUp();
                     break;
-                case IToken.VolumeUp:
-                    Volume = Math.Clamp(Volume*2, 0, sbyte.MaxValue);
+                case IKeytoneInstruction.VolumeUp:
+                    VolumeUp();
                     break;
-                case IToken.Note note:
+                case IKeytoneInstruction.Note note:
                     await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
                     break;
             }
         }
+    }
+
+    void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)
+    {
+        CurrentInstrument = new Instrument(changeToInstrument.Midi);
+    }
+
+    void MorphInstrument(IKeytoneInstruction.MorphInstrument morphInstrument)
+    {
+        CurrentInstrument = new Instrument(CurrentInstrument.Midi + morphInstrument.MorphDigit);
+    }
+
+    void VolumeUp()
+    {
+        Volume = Math.Clamp(Volume*2, 0, sbyte.MaxValue);
+    }
+
+    void OctaveUp()
+    {
+        if (CurrentOctave < 8)
+            CurrentOctave += 1;
+        else
+            CurrentOctave = 4;
     }
 
     public void Dispose() => _midiOut.Dispose();

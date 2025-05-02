@@ -14,8 +14,7 @@ public partial class Form1 : Form
         _player.Volume = 50;
         _player.CurrentOctave = 4;
         _player.CurrentInstrument = Instrument.AcousticGrandPiano;
-        var parser = new Parser();
-        var tokens = new TokenStream(parser.Parse(
+        var tokens = new KeytoneInstructionStream(KeytoneParser.Parse(
             rtxtboxUserInput.Text
         ));
         _player.Play(tokens);

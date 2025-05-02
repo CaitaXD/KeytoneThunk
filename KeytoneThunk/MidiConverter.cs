@@ -8,7 +8,6 @@ public static class MidiConverter
     // fm  =  2^((m−69)/12) * (440 Hz)
     public static double ToHertz(int midi) => Math.Round(Math.Pow(2, (midi - 69d)/12d)*440d, 2);
     public static int Note(MidiNote midiNote, int octave = 4) => (int)midiNote + 12*(octave - 4);
-
     public static double ToHertz(MidiNote midiNote, int octave = 4) => ToHertz(Note(midiNote, octave));
 }
 
