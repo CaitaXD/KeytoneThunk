@@ -6,13 +6,21 @@ public class MusicPlayer : IDisposable
 {
     const int MidiDeviceId = 0;
     const int Channel = 1;
-    public int Volume { get; set; } = 50;
-    public int CurrentOctave { get; set; } = 4;
+    
+    public MusicPlayer(int volume = 50, int currentOctave = 4)
+    {
+        Volume = volume;
+        CurrentOctave = currentOctave;
+        CurrentInstrument = Instrument.AcousticGrandPiano;
+    }
+    
+    public int Volume { get; private set; }
+    public int CurrentOctave { get; private set; }
 
     public Instrument CurrentInstrument
     {
         get => _currentInstrument;
-        set
+        private set
         {
             if (_currentInstrument.Midi == value.Midi) return;
             try
@@ -48,9 +56,7 @@ public class MusicPlayer : IDisposable
                     case IKeytoneInstruction.ChangeToInstrument changeToInstrument:
                         ChangeInstrument(changeToInstrument);
                         break;
-                    case IKeytoneInstruction.RepeatLastNote
-                        when keytoneInstructions.TryGetPreviousInstruction(out var last) &&
-                             last is IKeytoneInstruction.Note lastNote:
+                    case IKeytoneInstruction.RepeatLastNote when LastIsNote(keytoneInstructions, out var lastNote):
                         await PlayNote(NoteDuration, lastNote.MidiNote, CurrentOctave);
                         break;
                     case IKeytoneInstruction.RepeatLastNote or IKeytoneInstruction.Silence:
@@ -72,6 +78,17 @@ public class MusicPlayer : IDisposable
         {
             MessageBox.Show(ex.Message);
         }
+    }
+
+    static bool LastIsNote(KeytoneInstructionStream keytoneInstructions, out IKeytoneInstruction.Note lastNote)
+    {
+        if(keytoneInstructions.TryGetPreviousInstruction(out var last) && last is IKeytoneInstruction.Note note)
+        {
+            lastNote = note;
+            return true;
+        }
+        lastNote = default;
+        return false;
     }
 
     void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)

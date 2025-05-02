@@ -2,7 +2,7 @@ namespace KeytoneThunk;
 
 public partial class Form1 : Form
 {
-    readonly MusicPlayer _player = new();
+    readonly MusicPlayer _player = new(volume: 50, currentOctave: 4);
 
     public Form1()
     {
@@ -11,9 +11,6 @@ public partial class Form1 : Form
 
     void button1_Click(object sender, EventArgs e)
     {
-        _player.Volume = 50;
-        _player.CurrentOctave = 4;
-        _player.CurrentInstrument = Instrument.AcousticGrandPiano;
         var tokens = new KeytoneInstructionStream(KeytoneParser.Parse(
             rtxtboxUserInput.Text
         ));

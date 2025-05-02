@@ -19,14 +19,14 @@ public static class KeytoneParser
                 'G' =>                                    new IKeytoneInstruction.Note(MidiNote.G),
                 >= 'a' and <= 'g' =>                      new IKeytoneInstruction.Silence(),
                 ' ' =>                                    new IKeytoneInstruction.VolumeUp(),
-                '!' =>                                    new IKeytoneInstruction.ChangeToInstrument(24 - 1),
-                'o' or 'i' or 'u' or 'O' or 'I' or 'U' => new IKeytoneInstruction.ChangeToInstrument(110 - 1),
+                '!' =>                                    new IKeytoneInstruction.ChangeToInstrument(24 - 1), // 1 Based Indexing 
+                'o' or 'i' or 'u' or 'O' or 'I' or 'U' => new IKeytoneInstruction.ChangeToInstrument(110 - 1), // 1 Based Indexing
                 >= '0' and <= '9' when CharIsEven(ch) =>  new IKeytoneInstruction.MorphInstrument(CharToByte(ch)),
-                ';' =>                                    new IKeytoneInstruction.ChangeToInstrument(15 - 1),
-                >= '0' and <= '9' when CharIsOdd(ch) =>   new IKeytoneInstruction.ChangeToInstrument(15 - 1),
+                ';' =>                                    new IKeytoneInstruction.ChangeToInstrument(15 - 1), // 1 Based Indexing
+                >= '0' and <= '9' when CharIsOdd(ch) =>   new IKeytoneInstruction.ChangeToInstrument(15 - 1), // 1 Based Indexing
                 '?' or '.' =>                             new IKeytoneInstruction.OctaveUp(),
-                ',' =>                                    new IKeytoneInstruction.ChangeToInstrument(114 - 1),
-                '\n' =>                                   new IKeytoneInstruction.ChangeToInstrument(123 - 1),
+                ',' =>                                    new IKeytoneInstruction.ChangeToInstrument(114 - 1), // 1 Based Indexing
+                '\n' =>                                   new IKeytoneInstruction.ChangeToInstrument(123 - 1), // 1 Based Indexing
                 _ =>                                      new IKeytoneInstruction.RepeatLastNote(),
             };
         }
