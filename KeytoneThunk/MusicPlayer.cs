@@ -15,8 +15,15 @@ public class MusicPlayer : IDisposable
         set
         {
             if (_currentInstrument.Midi == value.Midi) return;
-            _currentInstrument = value;
-            _midiOut.Send(MidiMessage.ChangePatch(value.Midi, 1));
+            try
+            {
+                _currentInstrument = value;
+                _midiOut.Send(MidiMessage.ChangePatch(value.Midi, 1));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
     }
 
@@ -27,34 +34,43 @@ public class MusicPlayer : IDisposable
 
     public async ValueTask PlayAsync(KeytoneInstructionStream keytoneInstructions)
     {
-        foreach (var token in keytoneInstructions)
+        try
         {
-            switch (token)
+            foreach (var token in keytoneInstructions)
             {
-                case IKeytoneInstruction.MorphInstrument { MorphDigit: > 9 }:
-                    throw new ArgumentOutOfRangeException(nameof(IKeytoneInstruction.MorphInstrument.MorphDigit));
-                case IKeytoneInstruction.MorphInstrument morphInstrument:
-                    MorphInstrument(morphInstrument);
-                    break;
-                case IKeytoneInstruction.ChangeToInstrument changeToInstrument:
-                    ChangeInstrument(changeToInstrument);
-                    break;
-                case IKeytoneInstruction.RepeatLastNote when keytoneInstructions.TryGetPreviousInstruction(out var last) && last is IKeytoneInstruction.Note lastNote:
-                    await PlayNote(NoteDuration, lastNote.MidiNote, CurrentOctave);
-                    break;
-                case IKeytoneInstruction.RepeatLastNote or IKeytoneInstruction.Silence:
-                    await Task.Delay(NoteDuration);
-                    break;
-                case IKeytoneInstruction.OctaveUp: 
-                    OctaveUp();
-                    break;
-                case IKeytoneInstruction.VolumeUp:
-                    VolumeUp();
-                    break;
-                case IKeytoneInstruction.Note note:
-                    await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
-                    break;
+                switch (token)
+                {
+                    case IKeytoneInstruction.MorphInstrument { MorphDigit: > 9 }:
+                        throw new ArgumentOutOfRangeException(nameof(IKeytoneInstruction.MorphInstrument.MorphDigit));
+                    case IKeytoneInstruction.MorphInstrument morphInstrument:
+                        MorphInstrument(morphInstrument);
+                        break;
+                    case IKeytoneInstruction.ChangeToInstrument changeToInstrument:
+                        ChangeInstrument(changeToInstrument);
+                        break;
+                    case IKeytoneInstruction.RepeatLastNote
+                        when keytoneInstructions.TryGetPreviousInstruction(out var last) &&
+                             last is IKeytoneInstruction.Note lastNote:
+                        await PlayNote(NoteDuration, lastNote.MidiNote, CurrentOctave);
+                        break;
+                    case IKeytoneInstruction.RepeatLastNote or IKeytoneInstruction.Silence:
+                        await Task.Delay(NoteDuration);
+                        break;
+                    case IKeytoneInstruction.OctaveUp:
+                        OctaveUp();
+                        break;
+                    case IKeytoneInstruction.VolumeUp:
+                        VolumeUp();
+                        break;
+                    case IKeytoneInstruction.Note note:
+                        await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
+                        break;
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
         }
     }
 
@@ -81,7 +97,17 @@ public class MusicPlayer : IDisposable
             CurrentOctave = 4;
     }
 
-    public void Dispose() => _midiOut.Dispose();
+    public void Dispose()
+    {
+        try
+        {
+            _midiOut.Dispose();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+    }
 
     Instrument _currentInstrument;
 
@@ -89,10 +115,17 @@ public class MusicPlayer : IDisposable
 
     async Task PlayNote(TimeSpan duration, MidiNote note, int octave = 4)
     {
-        int midi = MidiConverter.Note(note, octave);
-        _midiOut.Send(MidiMessage.StartNote(midi, Volume, Channel));
-        await Task.Delay(duration);
-        _midiOut.Send(MidiMessage.StopNote(midi, 0, Channel));
+        try
+        {
+            int midi = MidiConverter.Note(note, octave);
+            _midiOut.Send(MidiMessage.StartNote(midi, Volume, Channel));
+            await Task.Delay(duration);
+            _midiOut.Send(MidiMessage.StopNote(midi, 0, Channel));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
     }
 
     static readonly TimeSpan NoteDuration = TimeSpan.FromMilliseconds(50);
