@@ -6,14 +6,14 @@ public class MusicPlayer : IDisposable
 {
     const int MidiDeviceId = 0;
     const int Channel = 1;
-    
+
     public MusicPlayer(int volume = 50, int currentOctave = 4)
     {
         Volume = volume;
         CurrentOctave = currentOctave;
         CurrentInstrument = Instrument.AcousticGrandPiano;
     }
-    
+
     public int Volume { get; private set; }
     public int CurrentOctave { get; private set; }
 
@@ -42,13 +42,14 @@ public class MusicPlayer : IDisposable
 
     public async ValueTask PlayAsync(KeytoneInstructionStream keytoneInstructions)
     {
+        const byte maxAllowedDigit = 9;
         try
         {
-            foreach (var token in keytoneInstructions)
+            foreach (var instruction in keytoneInstructions)
             {
-                switch (token)
+                switch (instruction)
                 {
-                    case IKeytoneInstruction.MorphInstrument { MorphDigit: > 9 }:
+                    case IKeytoneInstruction.MorphInstrument { MorphDigit: > maxAllowedDigit }:
                         throw new ArgumentOutOfRangeException(nameof(IKeytoneInstruction.MorphInstrument.MorphDigit));
                     case IKeytoneInstruction.MorphInstrument morphInstrument:
                         MorphInstrument(morphInstrument);
@@ -82,11 +83,12 @@ public class MusicPlayer : IDisposable
 
     static bool LastIsNote(KeytoneInstructionStream keytoneInstructions, out IKeytoneInstruction.Note lastNote)
     {
-        if(keytoneInstructions.TryGetPreviousInstruction(out var last) && last is IKeytoneInstruction.Note note)
+        if (keytoneInstructions.TryGetPreviousInstruction(out var last) && last is IKeytoneInstruction.Note note)
         {
             lastNote = note;
             return true;
         }
+
         lastNote = default;
         return false;
     }

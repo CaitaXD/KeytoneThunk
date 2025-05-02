@@ -9,5 +9,5 @@ public interface IKeytoneInstruction
     public struct VolumeUp : IKeytoneInstruction;
     public struct RepeatLastNote : IKeytoneInstruction;
     public struct OctaveUp : IKeytoneInstruction;
-    // void Command(MusicPlayer musicPlayer);
+    // void PerformMusicCommand(MusicPlayer musicPlayer);
 }

@@ -5,7 +5,9 @@ public readonly record struct MidiMessage(int RawData)
     public static implicit operator int(MidiMessage midiMessage) => midiMessage.RawData;
     public static implicit operator MidiMessage(int rawData) => new(rawData);
 
-    public MidiMessage(int status, int data1, int data2) : this(status + (data1 << 8) + (data2 << 16))
+    public MidiMessage(int status, int data1, int data2)
+        // Byte magic from the midi spec
+        : this(status + (data1 << 8) + (data2 << 16))
     {
     }
 
