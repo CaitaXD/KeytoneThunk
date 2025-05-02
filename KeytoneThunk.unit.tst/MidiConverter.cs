@@ -2,7 +2,7 @@
 using KeytoneThunk;
 
 [TestClass]
-public sealed class Test1
+public sealed class MidiConverter
 {
     const double FrequencyA4 = 440;
     const int MidiA4 = 69;
@@ -20,7 +20,7 @@ public sealed class Test1
     {
         // arrange
         // act
-        int actualMidi = MusicalNotes.MidiFromHz(givenFrequency);
+        int actualMidi = KeytoneThunk.MidiConverter.FromHertz(givenFrequency);
         // assert
         Assert.AreEqual(expectedMidi, actualMidi);
     }
@@ -32,7 +32,7 @@ public sealed class Test1
     {
         // arrange
         // act
-        double actualFrequency = MusicalNotes.FrequencyFromMidi(givenMidi);
+        double actualFrequency = KeytoneThunk.MidiConverter.ToHertz(givenMidi);
         // assert
         Assert.AreEqual(expectedFrequency, actualFrequency, double.Epsilon);
     }
@@ -46,7 +46,7 @@ public sealed class Test1
     {
         // arrange
         // act
-        int actualMidi = MusicalNotes.MidiFromNote(note, octave);
+        int actualMidi = KeytoneThunk.MidiConverter.Note(note, octave);
         // assert
         Assert.AreEqual(expectedMidi, actualMidi);
     }

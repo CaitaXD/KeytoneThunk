@@ -1,6 +1,4 @@
-﻿namespace KeytoneThunk;
-
-public static class MusicalNotes
+﻿public static class MusicalNotes
 {
     public static int MidiFromHz(double frequency)
     {

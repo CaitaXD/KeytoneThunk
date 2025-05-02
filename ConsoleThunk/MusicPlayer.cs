@@ -1,8 +1,9 @@
-﻿using NAudio.Midi;
+﻿using Commons.Music.Midi;
 
 namespace KeytoneThunk;
 
-public class MusicPlayer : IDisposable
+
+public class MusicPlayer
 {
     const int MidiDeviceId = 0;
     const int Channel = 1;
@@ -16,7 +17,9 @@ public class MusicPlayer : IDisposable
         {
             if (_currentInstrument.Midi == value.Midi) return;
             _currentInstrument = value;
-            _midiOut.Send(MidiMessage.ChangePatch(value.Midi, 1));
+            //_midiOut.Send(MidiMessage.ChangePatch(value.Midi, 1).RawData);
+            ArrayUtils.Write(_msgBuffer, [MidiEvent.Program, (byte)value.Midi]);
+            _midiOut.Send(_msgBuffer, 0);
         }
     }
 
@@ -46,10 +49,10 @@ public class MusicPlayer : IDisposable
                     await Task.Delay(NoteDuration);
                     break;
                 case IToken.OctaveUp:
-                    CurrentOctave = Math.Clamp(CurrentOctave + 1, 0, 8);
+                    CurrentOctave = OctaveChecked(CurrentOctave + 1);
                     break;
                 case IToken.VolumeUp:
-                    Volume = Math.Clamp(Volume*2, 0, sbyte.MaxValue);
+                    Volume = VolumeChecked(Volume*2);
                     break;
                 case IToken.Note note:
                     await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
@@ -62,15 +65,47 @@ public class MusicPlayer : IDisposable
 
     Instrument _currentInstrument;
 
-    readonly MidiOut _midiOut = new(MidiDeviceId);
+    readonly IMidiOutput _midiOut = MidiAccessManager.Default
+        .OpenOutputAsync(MidiAccessManager.Default.Outputs.First().Id)
+        .Result;
 
+    readonly byte[] _msgBuffer = new byte[3];
+    
     async Task PlayNote(TimeSpan duration, MidiNote note, int octave = 4)
     {
-        int midi = MidiConverter.Note(note, octave);
-        _midiOut.Send(MidiMessage.StartNote(midi, Volume, Channel));
+        byte midi = (byte)MusicalNotes.MidiFromNote(note, octave);
+        
+        ArrayUtils.Write(_msgBuffer, [MidiEvent.NoteOn, midi, (byte)Volume]);
+        _midiOut.Send(_msgBuffer, 0);
+        
         await Task.Delay(duration);
-        _midiOut.Send(MidiMessage.StopNote(midi, 0, Channel));
+        
+        ArrayUtils.Write(_msgBuffer, [MidiEvent.NoteOff, midi, (byte)0]);
+        _midiOut.Send(_msgBuffer, 0);
+        
+        // int midi = MusicalNotes.MidiFromNote(note, octave);
+        // _midiOut.Send(MidiMessage.StartNote(midi, Volume, Channel).RawData);
+        // await Task.Delay(duration);
+        // _midiOut.Send(MidiMessage.StopNote(midi, 0, Channel).RawData);
     }
 
     static readonly TimeSpan NoteDuration = TimeSpan.FromMilliseconds(50);
+    static int VolumeChecked(int volume) => Math.Clamp(volume, 0, 127);
+    static int OctaveChecked(int octave) => Math.Clamp(octave, 0, 8);
+}
+
+public static class MidiExtensions
+{
+    public static void Send(this IMidiOutput midiOut, ArraySegment<byte> mevent, long timestamp)
+    {
+        midiOut.Send(mevent.Array, mevent.Offset, mevent.Count, timestamp);
+    }
+}
+
+public static class ArrayUtils
+{
+    public static void Write<T>(Span<T> dst, ReadOnlySpan<T> src)
+    {
+        src.CopyTo(dst);
+    }
 }

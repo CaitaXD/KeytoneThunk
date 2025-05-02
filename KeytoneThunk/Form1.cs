@@ -2,7 +2,7 @@ namespace KeytoneThunk;
 
 public partial class Form1 : Form
 {
-    readonly MusicPlayer _player = new MusicPlayer();
+    readonly MusicPlayer _player = new();
 
     public Form1()
     {
