@@ -41,13 +41,13 @@ public struct KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
 
         if (result.Value == 'B')
         {
-            var p = Peek(ref _state);
+            var p = Peek(_state);
             if (p is not 'P') return MatchSingleChar(result.Value);
             
-            var m = Peek(ref _state, 2);
+            var m = Peek(_state, 2);
             if (m is not 'M') return MatchSingleChar(result.Value);
             
-            var plus = Peek(ref _state, 3);
+            var plus = Peek(_state, 3);
             if (plus is not '+') return MatchSingleChar(result.Value);
             
             return new IKeytoneInstruction.BpmUp(BpmUpAmount);
@@ -98,14 +98,14 @@ public struct KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
     static char? Shift(ref ReadOnlyMemory<char> state, int count = 1)
     {
         if (state.Length < count) return null;
-        var result = state.Span[0];
-        state = state[1..];
+        var result = state.Span[count - 1];
+        state = state[count..];
         return result;
     }
-    static char? Peek(ref ReadOnlyMemory<char> state, int count = 1)
+    static char? Peek(ReadOnlyMemory<char> state, int count = 1)
     {
         if (state.Length < count) return null;
-        var result = state.Span[0];
+        var result = state.Span[count - 1];
         return result;
     }
     public KeytoneParser GetEnumerator() => this;
