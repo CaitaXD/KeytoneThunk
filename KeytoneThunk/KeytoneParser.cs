@@ -10,14 +10,13 @@ public static class KeytoneParser
         {
             yield return ch switch
             {
-                'A' =>                                    new IKeytoneInstruction.Note(MidiNote.A),
-                'B' =>                                    new IKeytoneInstruction.Note(MidiNote.B),
-                'C' =>                                    new IKeytoneInstruction.Note(MidiNote.C),
-                'D' =>                                    new IKeytoneInstruction.Note(MidiNote.D),
-                'E' =>                                    new IKeytoneInstruction.Note(MidiNote.E),
-                'F' =>                                    new IKeytoneInstruction.Note(MidiNote.F),
-                'G' =>                                    new IKeytoneInstruction.Note(MidiNote.G),
-                >= 'a' and <= 'g' =>                      new IKeytoneInstruction.Silence(),
+                'A' or 'a' =>                             new IKeytoneInstruction.Note(MidiNote.A),
+                'B' or 'b' =>                             new IKeytoneInstruction.Note(MidiNote.B),
+                'C' or 'c' =>                             new IKeytoneInstruction.Note(MidiNote.C),
+                'D' or 'd' =>                             new IKeytoneInstruction.Note(MidiNote.D),
+                'E' or 'e' =>                             new IKeytoneInstruction.Note(MidiNote.E),
+                'F' or 'f' =>                             new IKeytoneInstruction.Note(MidiNote.F),
+                'G' or 'g' =>                             new IKeytoneInstruction.Note(MidiNote.G),
                 ' ' =>                                    new IKeytoneInstruction.VolumeUp(),
                 '!' =>                                    new IKeytoneInstruction.ChangeToInstrument(24 - 1), // 1 Based Indexing 
                 'o' or 'i' or 'u' or 'O' or 'I' or 'U' => new IKeytoneInstruction.ChangeToInstrument(110 - 1), // 1 Based Indexing
