@@ -76,6 +76,9 @@ public class MusicPlayer : IDisposable
                     case IKeytoneInstruction.Note note:
                         await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
                         break;
+                    case IKeytoneInstruction.Nop:
+                        // I'm confused
+                        break;
                 }
             }
         }
