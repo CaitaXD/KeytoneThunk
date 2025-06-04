@@ -17,7 +17,8 @@ public static class KeytoneParser
                 'E' or 'e' =>                             new IKeytoneInstruction.Note(MidiNote.E),
                 'F' or 'f' =>                             new IKeytoneInstruction.Note(MidiNote.F),
                 'G' or 'g' =>                             new IKeytoneInstruction.Note(MidiNote.G),
-                ' ' =>                                    new IKeytoneInstruction.VolumeUp(),
+                '+' =>                                    new IKeytoneInstruction.VolumeUp(),
+                '-' =>                                    new IKeytoneInstruction.ResetVolume(),
                 '!' =>                                    new IKeytoneInstruction.ChangeToInstrument(24 - 1), // 1 Based Indexing 
                 'o' or 'i' or 'u' or 'O' or 'I' or 'U' => new IKeytoneInstruction.ChangeToInstrument(110 - 1), // 1 Based Indexing
                 >= '0' and <= '9' when CharIsEven(ch) =>  new IKeytoneInstruction.MorphInstrument(CharToByte(ch)),

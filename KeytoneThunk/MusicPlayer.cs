@@ -9,11 +9,12 @@ public class MusicPlayer : IDisposable
 
     public MusicPlayer(int volume = 50, int currentOctave = 4)
     {
-        Volume = volume;
+        DefaultVolume = Volume = volume;
         CurrentOctave = currentOctave;
         CurrentInstrument = Instrument.AcousticGrandPiano;
     }
 
+    public int DefaultVolume { get; private set; }
     public int Volume { get; private set; }
     public int CurrentOctave { get; private set; }
 
@@ -69,6 +70,9 @@ public class MusicPlayer : IDisposable
                     case IKeytoneInstruction.VolumeUp:
                         VolumeUp();
                         break;
+                    case IKeytoneInstruction.ResetVolume:
+                        ResetVolume();
+                        break;
                     case IKeytoneInstruction.Note note:
                         await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
                         break;
@@ -106,6 +110,11 @@ public class MusicPlayer : IDisposable
     void VolumeUp()
     {
         Volume = Math.Clamp(Volume*2, 0, sbyte.MaxValue);
+    }
+    
+    void ResetVolume()
+    {
+        Volume = DefaultVolume;
     }
 
     void OctaveUp()
