@@ -4,11 +4,10 @@ using System.Runtime.InteropServices;
 
 namespace KeytoneThunk;
 
-public struct KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
+public sealed class KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
 {
     const int BpmUpAmount = 80;
-    const int RingSoundEffectId = 125;
-    static readonly int AlternativeInstrumentId = Instrument.AcousticBass.Midi;
+    const int RingSoundEffectId = 125 - 1; // 1 Based Indexing
     
     ReadOnlyMemory<char> _state = input.AsMemory();
     readonly ReadOnlyMemory<char> _input = input.AsMemory();
@@ -73,14 +72,14 @@ public struct KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
             'o' or 'i' or 'u' or 'O' or 'I' or 'U' => new IKeytoneInstruction.RepeatLastNote(or: new IKeytoneInstruction.SoundEffect(RingSoundEffectId)),
             ';' =>                                    new IKeytoneInstruction.SetBpm(RandomBpm()),
             '?' =>                                    new IKeytoneInstruction.Note(RandomNote()),
-            '\n' =>                                   new IKeytoneInstruction.ChangeToInstrument(AlternativeInstrumentId),
+            '\n' =>                                   new IKeytoneInstruction.MorphInstrument(1),
             _ =>                                      ElseCase,
         };
     }
     
     static int RandomBpm()
     {
-        var r = Random.Shared.Next(100, 200);
+        var r = Random.Shared.Next(60, 1200);
         return r;
     }
     
@@ -112,20 +111,22 @@ public struct KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
     public void Dispose()
     {
         _state = Memory<char>.Empty;
+        _last = null;
     }
     public void Reset()
     {
         _state = _input;
+        _last = null;
     }
-    IKeytoneInstruction? _last = null;
+    IKeytoneInstruction? _last;
     object? IEnumerator.Current => Current;
-    public IKeytoneInstruction Current { get; private set; }
+    public IKeytoneInstruction Current { get; private set; } = new IKeytoneInstruction.Nop();
     
     public bool TryGetPreviousInstruction(out IKeytoneInstruction keytoneInstruction)
     {
         if (_last == null)
         {
-            keytoneInstruction = new IKeytoneInstruction.Silence();
+            keytoneInstruction = new IKeytoneInstruction.Nop();
             return false;
         }
 

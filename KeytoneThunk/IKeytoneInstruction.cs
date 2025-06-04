@@ -21,5 +21,5 @@ public interface IKeytoneInstruction
     public readonly record struct OctaveUp(int Octaves) : IKeytoneInstruction;
     public readonly record struct BpmUp(int Bpm) : IKeytoneInstruction;
     public readonly record struct SetBpm(int Bpm) : IKeytoneInstruction;
-    public readonly record struct SoundEffect(int SoundEffectId) : IKeytoneInstruction;
+    public readonly record struct SoundEffect(int InstrumentId) : IKeytoneInstruction;
 }

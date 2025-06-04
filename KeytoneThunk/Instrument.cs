@@ -139,4 +139,6 @@ public readonly struct Instrument
     public static Instrument Helicopter = new(125);
     public static Instrument Applause = new(126);
     public static Instrument Gunshot = new(127);
+    
+    public const int Count = 128;
 }

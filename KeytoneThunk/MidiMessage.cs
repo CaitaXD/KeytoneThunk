@@ -32,7 +32,7 @@ public readonly record struct MidiMessage(int RawData)
         ValidateChannel(channel);
         return new MidiMessage(192 + channel - 1, patch, 0);
     }
-
+    
     static void ValidateChannel(int channel)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(channel, 16);
