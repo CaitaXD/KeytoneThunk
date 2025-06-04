@@ -11,9 +11,9 @@ public partial class Form1 : Form
 
     void button1_Click(object sender, EventArgs e)
     {
-        var tokens = new KeytoneInstructionStream(new KeytoneParserEnumerator(
+        var tokens = new KeytoneParser(
             rtxtboxUserInput.Text
-        ));
+        );
         _player.Play(tokens);
     }
 }

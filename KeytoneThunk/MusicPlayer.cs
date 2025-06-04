@@ -36,12 +36,12 @@ public class MusicPlayer : IDisposable
         }
     }
 
-    public void Play(KeytoneInstructionStream keytoneInstructions)
+    public void Play(KeytoneParser keytoneInstructions)
     {
         _ = PlayAsync(keytoneInstructions);
     }
 
-    public async ValueTask PlayAsync(KeytoneInstructionStream keytoneInstructions)
+    public async ValueTask PlayAsync(KeytoneParser keytoneInstructions)
     {
         const byte maxAllowedDigit = 9;
         try
@@ -99,7 +99,7 @@ public class MusicPlayer : IDisposable
         }
     }
 
-    static bool LastIsNote(KeytoneInstructionStream keytoneInstructions, out IKeytoneInstruction.Note lastNote)
+    static bool LastIsNote(KeytoneParser keytoneInstructions, out IKeytoneInstruction.Note lastNote)
     {
         if (keytoneInstructions.TryGetPreviousInstruction(out var last) && last is IKeytoneInstruction.Note note)
         {

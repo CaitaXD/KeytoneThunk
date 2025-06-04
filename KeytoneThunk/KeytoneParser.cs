@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace KeytoneThunk;
 
-public struct KeytoneParserEnumerator(string input) : IEnumerator<IKeytoneInstruction>
+public struct KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
 {
     const int BpmUpAmount = 80;
     const int RingSoundEffectId = 125;
@@ -15,6 +15,7 @@ public struct KeytoneParserEnumerator(string input) : IEnumerator<IKeytoneInstru
 
     public bool MoveNext()
     {
+        _last = Current;
         if (_state.IsEmpty) return false;
         Current = Match();
         return true;
@@ -107,7 +108,7 @@ public struct KeytoneParserEnumerator(string input) : IEnumerator<IKeytoneInstru
         var result = state.Span[0];
         return result;
     }
-    public KeytoneParserEnumerator GetEnumerator() => this;
+    public KeytoneParser GetEnumerator() => this;
     public void Dispose()
     {
         _state = Memory<char>.Empty;
@@ -116,6 +117,19 @@ public struct KeytoneParserEnumerator(string input) : IEnumerator<IKeytoneInstru
     {
         _state = _input;
     }
+    IKeytoneInstruction? _last = null;
     object? IEnumerator.Current => Current;
     public IKeytoneInstruction Current { get; private set; }
+    
+    public bool TryGetPreviousInstruction(out IKeytoneInstruction keytoneInstruction)
+    {
+        if (_last == null)
+        {
+            keytoneInstruction = new IKeytoneInstruction.Silence();
+            return false;
+        }
+
+        keytoneInstruction = _last;
+        return true;
+    }
 }
