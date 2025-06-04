@@ -64,8 +64,8 @@ public class MusicPlayer : IDisposable
                     case IKeytoneInstruction.RepeatLastNote or IKeytoneInstruction.Silence:
                         await Task.Delay(NoteDuration);
                         break;
-                    case IKeytoneInstruction.OctaveUp:
-                        OctaveUp();
+                    case IKeytoneInstruction.OctaveUp { Octaves: var octaves }:
+                        OctaveUp(octaves);
                         break;
                     case IKeytoneInstruction.VolumeUp:
                         VolumeUp();
@@ -76,9 +76,20 @@ public class MusicPlayer : IDisposable
                     case IKeytoneInstruction.Note note:
                         await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
                         break;
+                    case IKeytoneInstruction.SoundEffect soundEffect:
+                        await PlaySoundEffect(soundEffect.SoundEffectId);
+                        break;
+                    case IKeytoneInstruction.SetBpm setBpm:
+                        SetBpm(setBpm.Bpm);
+                        break;
+                    case IKeytoneInstruction.BpmUp bpmUp:
+                        BpmUp(bpmUp.Bpm);
+                        break;
                     case IKeytoneInstruction.Nop:
                         // I'm confused
                         break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(instruction), instruction, null);
                 }
             }
         }
@@ -120,12 +131,27 @@ public class MusicPlayer : IDisposable
         Volume = DefaultVolume;
     }
 
-    void OctaveUp()
+    void OctaveUp(int octave)
     {
         if (CurrentOctave < 8)
-            CurrentOctave += 1;
+            CurrentOctave += octave;
         else
             CurrentOctave = 4;
+    }
+    
+    void SetBpm(int bpm)
+    {
+        throw new NotImplementedException(nameof(SetBpm) + " not implemented");
+    }
+    
+    ValueTask PlaySoundEffect(int soundEffectId)
+    {
+        throw new NotImplementedException(nameof(PlaySoundEffect) + " not implemented");
+    }
+    
+    void BpmUp(int bpm)
+    {
+        throw new NotImplementedException(nameof(BpmUp) + " not implemented");
     }
 
     public void Dispose()
