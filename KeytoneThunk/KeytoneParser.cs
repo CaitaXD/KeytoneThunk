@@ -27,7 +27,7 @@ public static class KeytoneParser
                 '?' or '.' =>                             new IKeytoneInstruction.OctaveUp(),
                 ',' =>                                    new IKeytoneInstruction.ChangeToInstrument(114 - 1), // 1 Based Indexing
                 '\n' =>                                   new IKeytoneInstruction.ChangeToInstrument(123 - 1), // 1 Based Indexing
-                _ =>                                      new IKeytoneInstruction.RepeatLastNote(),
+                _ =>                                      new IKeytoneInstruction.Silence(),
             };
         }
     }
