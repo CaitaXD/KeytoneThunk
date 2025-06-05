@@ -78,7 +78,7 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
             'o' or 'i' or 'u' or 'O' or 'I' or 'U' => new IKeytoneInstruction.RepeatLastNote(or: new IKeytoneInstruction.SoundEffect(RingSoundEffectId)),
             ';' =>                                    new IKeytoneInstruction.SetBpm(RandomBpm()),
             '?' =>                                    new IKeytoneInstruction.Note(RandomNote()),
-            '\n' =>                                   new IKeytoneInstruction.MorphInstrument(1),
+            '\n' =>                                   new IKeytoneInstruction.ChangeToInstrument(RandomInstrument()),
             _ =>                                      ElseCase,
         };
     }
@@ -86,6 +86,12 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
     int RandomBpm()
     {
         var r = _random.Next(60, 1200);
+        return r;
+    }
+    
+    int RandomInstrument()
+    {
+        var r = _random.Next(Instrument.Count);
         return r;
     }
     
