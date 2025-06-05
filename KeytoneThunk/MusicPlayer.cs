@@ -1,61 +1,50 @@
-﻿using NAudio.Midi;
+﻿namespace KeytoneThunk;
 
-namespace KeytoneThunk;
-
-public class MusicPlayer : IDisposable
+public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposable
 {
-    const int MidiDeviceId = 0;
-    const int Channel = 1;
+    TimeSpan NoteDuration => TimeSpan.FromMilliseconds(50);
 
-    public MusicPlayer(int volume = 50, int currentOctave = 4, int bpm = 240)
+    public event Action<int>? VolumeChanged;
+    public event Action<int>? BpmChanged;
+
+    public int CurrentVolume => musicStrategy.CurrentVolume;
+    public int CurrentBpm => musicStrategy.CurrentBpm;
+
+
+    Instrument _defaultInstrument = Instrument.AcousticGrandPiano;
+
+    public void Play(KeytoneParser keytoneInstructions)
     {
-        DefaultVolume = Volume = volume;
-        CurrentOctave = currentOctave;
-        CurrentInstrument = Instrument.AcousticGrandPiano;
-        CurrentBpm = bpm;
+        _ = PlayAsync(keytoneInstructions).AsTask();
     }
 
-    public int DefaultVolume { get; private set; }
-    public int Volume { get; private set; }
-    public int CurrentOctave { get; private set; }
-
-    public int CurrentBpm { get; private set; }
-
-    public Instrument CurrentInstrument
+    public async ValueTask PlayAsync(KeytoneParser keytoneInstructions)
     {
-        get => _currentInstrument;
-        private set
+        try
         {
-            if (_currentInstrument.Midi == value.Midi) return;
+            while (keytoneInstructions.MoveNext())
+            {
+                var instruction = keytoneInstructions.Current;
+                await MatchInstruction(keytoneInstructions, instruction);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+        finally
+        {
+            ResetVolume();
+            ResetBpm();
             try
             {
-                _currentInstrument = value;
-                _midiOut.Send(MidiMessage.ChangePatch(value.Midi, 1));
+                musicStrategy.ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(_defaultInstrument.Midi));
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
         }
-    }
-
-    public void Play(KeytoneParser keytoneInstructions)
-    {
-        Task.Run(async () =>
-        {
-            try
-            {
-                while (keytoneInstructions.MoveNext())
-                {
-                    var instruction = keytoneInstructions.Current;
-                    await MatchInstruction(keytoneInstructions, instruction);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        });
     }
 
     async ValueTask MatchInstruction(KeytoneParser keytoneInstructions, IKeytoneInstruction instruction)
@@ -66,19 +55,19 @@ public class MusicPlayer : IDisposable
             case IKeytoneInstruction.MorphInstrument { MorphDigit: > maxAllowedDigit }:
                 throw new ArgumentOutOfRangeException(nameof(IKeytoneInstruction.MorphInstrument.MorphDigit));
             case IKeytoneInstruction.MorphInstrument morphInstrument:
-                MorphInstrument(morphInstrument);
+                musicStrategy.MorphInstrument(morphInstrument);
                 break;
             case IKeytoneInstruction.ChangeToInstrument changeToInstrument:
-                ChangeInstrument(changeToInstrument);
+                musicStrategy.ChangeInstrument(changeToInstrument);
                 break;
             case IKeytoneInstruction.RepeatLastNote when LastIsNote(keytoneInstructions, out var lastNote):
-                 await PlayNote(NoteDuration, lastNote.MidiNote, CurrentOctave);
+                await musicStrategy.PlayNoteAsync(NoteDuration, lastNote.MidiNote, musicStrategy.CurrentOctave);
                 break;
             case IKeytoneInstruction.RepeatLastNote { Or: var or }:
                 await MatchInstruction(keytoneInstructions, or);
                 break;
             case IKeytoneInstruction.Silence:
-                await Task.Delay(BeatDelay);
+                await Task.Delay(musicStrategy.BeatDelay);
                 break;
             case IKeytoneInstruction.OctaveUp { Octaves: var octaves }:
                 OctaveUp(octaves);
@@ -90,10 +79,11 @@ public class MusicPlayer : IDisposable
                 ResetVolume();
                 break;
             case IKeytoneInstruction.Note note:
-                await PlayNote(NoteDuration, note.MidiNote, CurrentOctave);
+                await musicStrategy.PlayNoteAsync(NoteDuration, note.MidiNote, musicStrategy.CurrentOctave);
                 break;
             case IKeytoneInstruction.SoundEffect { InstrumentId: var id }:
-                await PlayNoteWithInstrument(2*NoteDuration, MidiNote.C, CurrentOctave, id);
+                await musicStrategy.PlayNoteWithInstrumentAsync(2*NoteDuration, MidiNote.C, musicStrategy.CurrentOctave,
+                    id);
                 break;
             case IKeytoneInstruction.SetBpm setBpm:
                 SetBpm(setBpm.Bpm);
@@ -121,87 +111,53 @@ public class MusicPlayer : IDisposable
         return false;
     }
 
-    void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)
+    void BpmUp(int bpm)
     {
-        CurrentInstrument = new Instrument(changeToInstrument.Midi);
-    }
-
-    void MorphInstrument(IKeytoneInstruction.MorphInstrument morphInstrument)
-    {
-        CurrentInstrument = new Instrument((CurrentInstrument.Midi + morphInstrument.MorphDigit) % Instrument.Count);
-    }
-
-    void VolumeUp()
-    {
-        Volume = Math.Clamp(Volume*2, 0, sbyte.MaxValue);
-    }
-
-    void ResetVolume()
-    {
-        Volume = DefaultVolume;
-    }
-
-    void OctaveUp(int octave)
-    {
-        if (CurrentOctave < 8)
-            CurrentOctave += octave;
-        else
-            CurrentOctave = 4;
+        musicStrategy.CurrentBpm = Math.Clamp(musicStrategy.CurrentBpm + bpm, 0, int.MaxValue);
+        BpmChanged?.Invoke(musicStrategy.CurrentBpm);
     }
 
     void SetBpm(int bpm)
     {
-        CurrentBpm = bpm;
+        musicStrategy.CurrentBpm = bpm;
+        BpmChanged?.Invoke(musicStrategy.CurrentBpm);
     }
 
-    async ValueTask PlayNoteWithInstrument(TimeSpan duration, MidiNote note, int octave, int instrumentId)
+    void VolumeUp()
     {
-        var prev = CurrentInstrument;
-        ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(instrumentId));
-        await PlayNote(duration, note, octave);
-        ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(prev.Midi));
+        musicStrategy.CurrentVolume = Math.Clamp(musicStrategy.CurrentVolume*2, 0, sbyte.MaxValue);
+        VolumeChanged?.Invoke(musicStrategy.CurrentVolume);
     }
 
-    void BpmUp(int bpm)
+    void ResetVolume()
     {
-        CurrentBpm = Math.Clamp(CurrentBpm + bpm, 0, int.MaxValue);
+        musicStrategy.CurrentVolume = musicStrategy.DefaultVolume;
+        VolumeChanged?.Invoke(musicStrategy.CurrentVolume);
+    }
+
+    void ResetBpm()
+    {
+        musicStrategy.CurrentBpm = musicStrategy.DefaultBpm;
+        BpmChanged?.Invoke(musicStrategy.CurrentBpm);
+    }
+
+    void OctaveUp(int octave)
+    {
+        if (musicStrategy.CurrentOctave < 8)
+            musicStrategy.CurrentOctave += octave;
+        else
+            musicStrategy.CurrentOctave = 4;
     }
 
     public void Dispose()
     {
         try
         {
-            _midiOut.Dispose();
+            musicStrategy.Dispose();
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message);
         }
     }
-
-    Instrument _currentInstrument;
-
-    readonly MidiOut _midiOut = new(MidiDeviceId);
-
-    async ValueTask PlayNote(TimeSpan duration, MidiNote note, int octave = 4)
-    {
-        try
-        {
-            int midi = MidiConverter.Note(note, octave);
-            _midiOut.Send(MidiMessage.StartNote(midi, Volume, Channel));
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(duration);
-                _midiOut.Send(MidiMessage.StopNote(midi, 0, Channel));
-            });
-            await Task.Delay(BeatDelay);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
-    }
-
-    static readonly TimeSpan NoteDuration = TimeSpan.FromMilliseconds(50);
-    TimeSpan BeatDelay =>  CurrentBpm > 0d ? TimeSpan.FromMinutes(1d/CurrentBpm) : TimeSpan.Zero;
 }

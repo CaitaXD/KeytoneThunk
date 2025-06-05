@@ -4,8 +4,14 @@ using System.Runtime.InteropServices;
 
 namespace KeytoneThunk;
 
-public sealed class KeytoneParser(string input) : IEnumerator<IKeytoneInstruction>
+public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnumerator<IKeytoneInstruction>
 {
+    static KeytoneParser()
+    {
+        MidiNotes = ImmutableCollectionsMarshal.AsImmutableArray(Enum.GetValues<MidiNote>());
+    }
+    
+    readonly Random _random = randomSeed is null ? Random.Shared : new Random(randomSeed.Value);
     const int BpmUpAmount = 80;
     const int RingSoundEffectId = 125 - 1; // 1 Based Indexing
     
@@ -55,7 +61,7 @@ public sealed class KeytoneParser(string input) : IEnumerator<IKeytoneInstructio
         return MatchSingleChar(result.Value);
     }
 
-    static IKeytoneInstruction MatchSingleChar(char ch)
+    IKeytoneInstruction MatchSingleChar(char ch)
     {
         return ch switch
         {
@@ -77,23 +83,20 @@ public sealed class KeytoneParser(string input) : IEnumerator<IKeytoneInstructio
         };
     }
     
-    static int RandomBpm()
+    int RandomBpm()
     {
-        var r = Random.Shared.Next(60, 1200);
+        var r = _random.Next(60, 1200);
         return r;
     }
     
-    static readonly ImmutableArray<MidiNote> MidiNotes = ImmutableCollectionsMarshal.AsImmutableArray(Enum.GetValues<MidiNote>());
-    static MidiNote RandomNote()
+    static readonly ImmutableArray<MidiNote> MidiNotes;
+    MidiNote RandomNote()
     {
-        var r = Random.Shared.Next(MidiNotes.Length);
+        var r = _random.Next(MidiNotes.Length);
         return MidiNotes[r];
     }
 
     static readonly IKeytoneInstruction ElseCase = new IKeytoneInstruction.Nop();
-    static byte CharToByte(char ch) => (byte)(ch - 48);
-    static bool CharIsEven(char ch) => CharToByte(ch) % 2 == 0;
-    static bool CharIsOdd(char ch) => !CharIsEven(ch);
     static char? Shift(ref ReadOnlyMemory<char> state, int count = 1)
     {
         if (state.Length < count) return null;
@@ -119,7 +122,7 @@ public sealed class KeytoneParser(string input) : IEnumerator<IKeytoneInstructio
         _last = null;
     }
     IKeytoneInstruction? _last;
-    object? IEnumerator.Current => Current;
+    object IEnumerator.Current => Current;
     public IKeytoneInstruction Current { get; private set; } = new IKeytoneInstruction.Nop();
     
     public bool TryGetPreviousInstruction(out IKeytoneInstruction keytoneInstruction)

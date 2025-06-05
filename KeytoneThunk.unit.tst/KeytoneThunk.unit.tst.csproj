@@ -16,8 +16,4 @@
       <ProjectReference Include="..\KeytoneThunk\KeytoneThunk.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="managed-midi" Version="1.10.1" />
-    </ItemGroup>
-
 </Project>
