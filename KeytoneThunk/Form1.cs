@@ -9,9 +9,9 @@ public partial class Form1 : Form
     readonly MusicPlayer _player = new(new MidiDeviceMusicPlayerStrategy());
 
     const string Test = """
-                        ???;
-                        ???;
-                        ???;
+                        ???
+                        ???
+                        ???
                         """;
     public Form1()
     {

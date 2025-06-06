@@ -17,6 +17,10 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
     Instrument _currentInstrument;
     readonly MidiEventCollection _midiEvents;
     TimeSpan _timeStamp = TimeSpan.Zero;
+    
+    // Dumb ass attempt to make the timestamp of the midi file match the timing of the player
+    // This is dumb ahh a guess
+    const int DeltaTicksPerQuarterNote = 25;
 
     public MidiExportFileMusicPlayerStrategy(string filePath, int volume = 50, int currentOctave = 4, int bpm = 240)
     {
@@ -25,27 +29,24 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
         CurrentOctave = currentOctave;
         _currentInstrument = Instrument.AcousticGrandPiano;
         _filePath = filePath;
-        _midiEvents = new MidiEventCollection(0, 100);
+        _midiEvents = new MidiEventCollection(0, DeltaTicksPerQuarterNote);
         _midiEvents.AddTrack();
     }
-
+    
     public ValueTask PlayNoteAsync(TimeSpan duration, MidiNote note, int octave)
     {
         int number = MidiConverter.Note(note, octave);
-        var startNodeEvent = new NoteOnEvent(_timeStamp.Milliseconds, Channel, number, Velocity, duration.Milliseconds);
-        var stopNodeEvent = new NoteOnEvent(_timeStamp.Milliseconds + duration.Milliseconds, Channel, number, 0, 0);
+        var startNodeEvent = new NoteOnEvent(DeltaTicks(_timeStamp), Channel, number, Velocity, DeltaTicks(duration));
+        var stopNodeEvent = new NoteOnEvent(DeltaTicks(_timeStamp + duration), Channel, number, 0, 0);
         _midiEvents.AddEvent(startNodeEvent, TrackNumber);
         _midiEvents.AddEvent(stopNodeEvent, TrackNumber);
-        // Because of the quarter Tick think???
-        // This feels close to the player tempo so ill just use it but im not quite sure about this
-        // Feel free to change this
-        _timeStamp += ((IMusicPlayerStrategy)this).BeatDelay/4; 
+        _timeStamp += ((IMusicPlayerStrategy)this).BeatDelay; 
         return ValueTask.CompletedTask;
     }
 
     public void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)
     {
-        var changeInstrumentEvent = new PatchChangeEvent(_timeStamp.Seconds, Channel, changeToInstrument.Midi);
+        var changeInstrumentEvent = new PatchChangeEvent(DeltaTicks(_timeStamp), Channel, changeToInstrument.Midi);
         _midiEvents.AddEvent(changeInstrumentEvent, TrackNumber);
         _currentInstrument = new Instrument(changeToInstrument.Midi);
     }
@@ -63,6 +64,13 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
         _ = PlayNoteAsync(duration, note, octave).AsTask();
         ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(prev.Midi));
         return ValueTask.CompletedTask;
+    }
+    
+    int DeltaTicks(TimeSpan timeSpan)
+    {
+        // Dumb ass attempt to make the timestamp of the midi file match the timing of the player
+        // This is dumb ass a guess
+        return (int)Math.Round(timeSpan.TotalMilliseconds*.05d);
     }
 
     public void Dispose()

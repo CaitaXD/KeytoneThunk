@@ -1,4 +1,6 @@
-﻿namespace KeytoneThunk;
+﻿using System.Diagnostics;
+
+namespace KeytoneThunk;
 
 public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposable
 {
@@ -11,7 +13,7 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
     public int CurrentBpm => musicStrategy.CurrentBpm;
 
 
-    Instrument _defaultInstrument = Instrument.AcousticGrandPiano;
+    readonly Instrument _defaultInstrument = Instrument.AcousticGrandPiano;
 
     public void Play(KeytoneParser keytoneInstructions)
     {
