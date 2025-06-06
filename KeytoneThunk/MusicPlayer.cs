@@ -2,7 +2,7 @@
 
 namespace KeytoneThunk;
 
-public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposable
+public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultVolume = 50, int defaultBpm = 240) : IDisposable
 {
     TimeSpan NoteDuration => TimeSpan.FromMilliseconds(50);
     
@@ -12,8 +12,8 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
     public event Action<int>? VolumeChanged;
     public event Action<int>? BpmChanged;
 
-    public int DefaultVolume { get; set; }
-    public int DefaultBpm { get; set; }
+    public int DefaultVolume { get; set; } = defaultVolume;
+    public int DefaultBpm { get; set; } = defaultBpm;
     public bool IsPaused { get; private set; }
     public int CurrentVolume => musicStrategy.CurrentVolume;
     public int CurrentBpm => musicStrategy.CurrentBpm;
