@@ -6,7 +6,8 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
 {
     TimeSpan NoteDuration => TimeSpan.FromMilliseconds(50);
     
-    bool _stopping;
+    bool _stopRequested;
+    int _startedPlaying;
     
     public event Action<int>? VolumeChanged;
     public event Action<int>? BpmChanged;
@@ -25,11 +26,12 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
 
     public async ValueTask PlayAsync(KeytoneParser keytoneInstructions, CancellationToken cancellationToken = default)
     {
+        Interlocked.Increment(ref _startedPlaying);
         try
         {
             while (!IsPaused && keytoneInstructions.MoveNext())
             {
-                if (_stopping || cancellationToken.IsCancellationRequested) return;
+                if (_stopRequested || cancellationToken.IsCancellationRequested) return;
                 var instruction = keytoneInstructions.Current;
                 await MatchInstruction(keytoneInstructions, instruction);
             }
@@ -42,7 +44,8 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
         {
             ResetVolume();
             ResetBpm();
-            _stopping = false;
+            _stopRequested = false;
+            Interlocked.Decrement(ref _startedPlaying);
             try
             {
                 musicStrategy.ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(_defaultInstrument.Midi));
@@ -118,7 +121,7 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
     
     public void Stop()
     {
-        _stopping = true;
+        if(_startedPlaying > 0) _stopRequested = true;
         ResetVolume();
         ResetBpm();
     }
