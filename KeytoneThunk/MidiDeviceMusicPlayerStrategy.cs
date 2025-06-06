@@ -24,6 +24,11 @@ public class MidiDeviceMusicPlayerStrategy : IMusicPlayerStrategy
         DefaultBpm = CurrentBpm = bpm;
     }
 
+    public ValueTask Silence(TimeSpan duration)
+    {
+        return  new ValueTask(Task.Delay(duration));
+    }
+
     public void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)
     {
         _midiOut.Send(MidiMessage.ChangePatch(changeToInstrument.Midi, 1));

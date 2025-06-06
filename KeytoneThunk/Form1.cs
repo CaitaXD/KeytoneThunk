@@ -5,8 +5,9 @@ namespace KeytoneThunk;
 public partial class Form1 : Form
 {
     static int Seed = Environment.TickCount;
-    
+
     readonly MusicPlayer _player = new(new MidiDeviceMusicPlayerStrategy());
+    //readonly MusicPlayer _player = new(IMusicPlayerStrategy.Null);
 
     const string Test = """
                         ???

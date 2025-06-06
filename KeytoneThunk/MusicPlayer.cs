@@ -69,7 +69,7 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
                 await MatchInstruction(keytoneInstructions, or);
                 break;
             case IKeytoneInstruction.Silence:
-                await Task.Delay(musicStrategy.BeatDelay);
+                await musicStrategy.Silence(musicStrategy.BeatDelay);
                 break;
             case IKeytoneInstruction.OctaveUp { Octaves: var octaves }:
                 OctaveUp(octaves);

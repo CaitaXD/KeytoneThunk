@@ -17,7 +17,7 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
     Instrument _currentInstrument;
     readonly MidiEventCollection _midiEvents;
     TimeSpan _timeStamp = TimeSpan.Zero;
-    
+
     // Dumb ass attempt to make the timestamp of the midi file match the timing of the player
     // This is dumb ahh a guess
     const int DeltaTicksPerQuarterNote = 25;
@@ -32,7 +32,7 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
         _midiEvents = new MidiEventCollection(0, DeltaTicksPerQuarterNote);
         _midiEvents.AddTrack();
     }
-    
+
     public ValueTask PlayNoteAsync(TimeSpan duration, MidiNote note, int octave)
     {
         int number = MidiConverter.Note(note, octave);
@@ -40,7 +40,13 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
         var stopNodeEvent = new NoteOnEvent(DeltaTicks(_timeStamp + duration), Channel, number, 0, 0);
         _midiEvents.AddEvent(startNodeEvent, TrackNumber);
         _midiEvents.AddEvent(stopNodeEvent, TrackNumber);
-        _timeStamp += ((IMusicPlayerStrategy)this).BeatDelay; 
+        _timeStamp += ((IMusicPlayerStrategy)this).BeatDelay;
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask Silence(TimeSpan duration)
+    {
+        _timeStamp += ((IMusicPlayerStrategy)this).BeatDelay;
         return ValueTask.CompletedTask;
     }
 
@@ -59,13 +65,19 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
 
     public ValueTask PlayNoteWithInstrumentAsync(TimeSpan duration, MidiNote note, int octave, int instrumentId)
     {
+        if (instrumentId == _currentInstrument.Midi)
+        {
+            PlayNoteAsync(duration, note, octave).AsTask().GetAwaiter().GetResult();
+            return ValueTask.CompletedTask;
+        }
+
         var prev = _currentInstrument;
         ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(instrumentId));
-        _ = PlayNoteAsync(duration, note, octave).AsTask();
+        PlayNoteAsync(duration, note, octave).AsTask().GetAwaiter().GetResult();
         ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(prev.Midi));
         return ValueTask.CompletedTask;
     }
-    
+
     int DeltaTicks(TimeSpan timeSpan)
     {
         // Dumb ass attempt to make the timestamp of the midi file match the timing of the player
