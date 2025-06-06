@@ -61,8 +61,6 @@ public partial class Form1 : Form
             Text = "Save As",
             AllowCancel = true
         };
-        const string midiFilter = "MIDI Files|*.mid;*.midi";
-        const string textFilter = "Text Files|*.txt";
         const string midi = "Midi";
         const string text = "Text";
         const string cancel = "Cancel";
