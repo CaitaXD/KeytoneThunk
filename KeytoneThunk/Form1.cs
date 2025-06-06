@@ -56,12 +56,40 @@ public partial class Form1 : Form
 
     void btnSaveToMidiFile_Click(object sender, EventArgs e)
     {
+        var dialogPage = new TaskDialogPage
+        {
+            Text = "Save As",
+            AllowCancel = true
+        };
+        const string midiFilter = "MIDI Files|*.mid;*.midi";
+        const string textFilter = "Text Files|*.txt";
+        const string midi = "Midi";
+        const string text = "Text";
+        const string cancel = "Cancel";
+        
+        dialogPage.Buttons.Add(new TaskDialogButton(midi));
+        dialogPage.Buttons.Add(new TaskDialogButton(text));
+        dialogPage.Buttons.Add(new TaskDialogButton(cancel));
+
+        var chosen = TaskDialog.ShowDialog(dialogPage);
+        if (string.Compare(chosen.Text, cancel, StringComparison.OrdinalIgnoreCase) == 0) return;
+        
         var fd = new SaveFileDialog();
-        fd.Filter = "MIDI Files|*.mid;*.midi";
-        if (fd.ShowDialog() != DialogResult.OK) return;
-        var filePath = fd.FileName;
-        using var p = new MusicPlayer(new MidiExportFileMusicPlayerStrategy(filePath));
-        p.Play(new KeytoneParser(rtxtboxUserInput.Text, _seed));
+        if (string.Compare(chosen.Text, midi, StringComparison.OrdinalIgnoreCase) == 0)
+        {
+            fd.Filter = "MIDI Files|*.mid;*.midi";
+            if (fd.ShowDialog() != DialogResult.OK) return;
+            var filePath = fd.FileName;
+            using var p = new MusicPlayer(new MidiExportFileMusicPlayerStrategy(filePath));
+            p.Play(new KeytoneParser(rtxtboxUserInput.Text, _seed));
+        }
+        else if (string.Compare(chosen.Text, text, StringComparison.OrdinalIgnoreCase) == 0)
+        {
+            fd.Filter = "Text Files|*.txt";
+            if (fd.ShowDialog() != DialogResult.OK) return;
+            var filePath = fd.FileName;
+            File.WriteAllText(filePath, rtxtboxUserInput.Text);
+        }
     }
 
     void btnRandSeed_Click(object sender, EventArgs e)
