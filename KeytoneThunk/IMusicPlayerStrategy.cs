@@ -2,8 +2,6 @@
 
 public interface IMusicPlayerStrategy : IDisposable
 {
-    int DefaultVolume { get; }
-    int DefaultBpm { get; }
     int CurrentBpm { get; set; }
     int CurrentVolume { get; set; }
     int CurrentOctave { get; set; }
@@ -19,8 +17,6 @@ public interface IMusicPlayerStrategy : IDisposable
 
 public class NullMusicPlayerStrategy : IMusicPlayerStrategy
 {
-    public int DefaultVolume => 0;
-    public int DefaultBpm => 0;
     public int CurrentBpm { get; set; }
     public int CurrentVolume { get; set; }
     public int CurrentOctave { get; set; }

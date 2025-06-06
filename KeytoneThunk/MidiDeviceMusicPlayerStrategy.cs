@@ -4,8 +4,6 @@ namespace KeytoneThunk;
 
 public class MidiDeviceMusicPlayerStrategy : IMusicPlayerStrategy
 {
-    public int DefaultVolume { get; }
-    public int DefaultBpm { get; }
     public int CurrentBpm { get; set; }
     public int CurrentVolume { get; set; }
     public int CurrentOctave { get; set; }
@@ -20,8 +18,8 @@ public class MidiDeviceMusicPlayerStrategy : IMusicPlayerStrategy
         _channel = channel;
         CurrentBpm = bpm;
         CurrentOctave = octave;
-        DefaultVolume = CurrentVolume = volume;
-        DefaultBpm = CurrentBpm = bpm;
+        CurrentVolume = volume;
+        CurrentBpm = bpm;
     }
 
     public ValueTask Silence(TimeSpan duration)

@@ -12,6 +12,8 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
     public event Action<int>? VolumeChanged;
     public event Action<int>? BpmChanged;
 
+    public int DefaultVolume { get; set; }
+    public int DefaultBpm { get; set; }
     public bool IsPaused { get; private set; }
     public int CurrentVolume => musicStrategy.CurrentVolume;
     public int CurrentBpm => musicStrategy.CurrentBpm;
@@ -158,13 +160,13 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
 
     void ResetVolume()
     {
-        musicStrategy.CurrentVolume = musicStrategy.DefaultVolume;
+        musicStrategy.CurrentVolume = DefaultVolume;
         VolumeChanged?.Invoke(musicStrategy.CurrentVolume);
     }
 
     void ResetBpm()
     {
-        musicStrategy.CurrentBpm = musicStrategy.DefaultBpm;
+        musicStrategy.CurrentBpm = DefaultBpm;
         BpmChanged?.Invoke(musicStrategy.CurrentBpm);
     }
 

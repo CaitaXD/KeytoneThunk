@@ -4,7 +4,7 @@ namespace KeytoneThunk;
 
 public partial class Form1 : Form
 {
-    static int Seed = Environment.TickCount;
+    static int _seed = Environment.TickCount;
 
     readonly MusicPlayer _player = new(new MidiDeviceMusicPlayerStrategy());
     //readonly MusicPlayer _player = new(IMusicPlayerStrategy.Null);
@@ -22,7 +22,7 @@ public partial class Form1 : Form
         rtxtboxUserInput.Text = Test;
         VolumeChanged(_player.CurrentVolume);
         BpmChanged(_player.CurrentBpm);
-        txtboxSeed.Text = Seed.ToString();
+        txtboxSeed.Text = _seed.ToString();
         txtboxSeed.TextChanged += TxtboxSeed_TextChanged;
     }
 
@@ -31,7 +31,7 @@ public partial class Form1 : Form
         MaskedTextBox txtboxSeed = (MaskedTextBox)sender!;
         if (int.TryParse(txtboxSeed.Text, out var seed))
         {
-            Seed = seed;
+            _seed = seed;
         }
     }
     
@@ -49,7 +49,7 @@ public partial class Form1 : Form
     {
         var tokens = new KeytoneParser(
             rtxtboxUserInput.Text,
-            Seed
+            _seed
         );
         _player.Play(tokens);
     }
@@ -61,13 +61,13 @@ public partial class Form1 : Form
         if (fd.ShowDialog() != DialogResult.OK) return;
         var filePath = fd.FileName;
         using var p = new MusicPlayer(new MidiExportFileMusicPlayerStrategy(filePath));
-        p.Play(new KeytoneParser(rtxtboxUserInput.Text, Seed));
+        p.Play(new KeytoneParser(rtxtboxUserInput.Text, _seed));
     }
 
     void btnRandSeed_Click(object sender, EventArgs e)
     {
-        Seed = HashCode.Combine(Seed, Environment.TickCount);
-        txtboxSeed.Text = Seed.ToString();
+        _seed = HashCode.Combine(_seed, Environment.TickCount);
+        txtboxSeed.Text = _seed.ToString();
     }
 
     void btnLoadText_Click(object sender, EventArgs e)

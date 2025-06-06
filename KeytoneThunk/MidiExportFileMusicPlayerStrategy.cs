@@ -4,8 +4,6 @@ namespace KeytoneThunk;
 
 public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
 {
-    public int DefaultVolume { get; }
-    public int DefaultBpm { get; }
     public int CurrentBpm { get; set; }
     public int CurrentVolume { get; set; }
     public int CurrentOctave { get; set; }
@@ -24,8 +22,8 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
 
     public MidiExportFileMusicPlayerStrategy(string filePath, int volume = 50, int currentOctave = 4, int bpm = 240)
     {
-        DefaultBpm = CurrentBpm = bpm;
-        DefaultVolume = CurrentVolume = volume;
+        CurrentBpm = bpm;
+        CurrentVolume = volume;
         CurrentOctave = currentOctave;
         _currentInstrument = Instrument.AcousticGrandPiano;
         _filePath = filePath;
