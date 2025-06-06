@@ -40,11 +40,12 @@ partial class Form1
         btnRandSeed = new System.Windows.Forms.Button();
         txtboxSeed = new System.Windows.Forms.MaskedTextBox();
         btnLoadText = new System.Windows.Forms.Button();
+        btnStop = new System.Windows.Forms.Button();
         SuspendLayout();
         // 
         // btnPlay
         // 
-        btnPlay.Location = new System.Drawing.Point(484, 337);
+        btnPlay.Location = new System.Drawing.Point(219, 332);
         btnPlay.Name = "btnPlay";
         btnPlay.Size = new System.Drawing.Size(213, 86);
         btnPlay.TabIndex = 0;
@@ -138,11 +139,22 @@ partial class Form1
         btnLoadText.UseVisualStyleBackColor = true;
         btnLoadText.Click += btnLoadText_Click;
         // 
+        // btnStop
+        // 
+        btnStop.Location = new System.Drawing.Point(438, 332);
+        btnStop.Name = "btnStop";
+        btnStop.Size = new System.Drawing.Size(63, 86);
+        btnStop.TabIndex = 12;
+        btnStop.Text = "Stop\r\n";
+        btnStop.UseVisualStyleBackColor = true;
+        btnStop.Click += btnStop_Click;
+        // 
         // Form1
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         ClientSize = new System.Drawing.Size(800, 450);
+        Controls.Add(btnStop);
         Controls.Add(btnLoadText);
         Controls.Add(txtboxSeed);
         Controls.Add(btnRandSeed);
@@ -158,6 +170,8 @@ partial class Form1
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Windows.Forms.Button btnStop;
 
     private System.Windows.Forms.Button btnLoadText;
 

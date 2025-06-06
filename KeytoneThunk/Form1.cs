@@ -78,4 +78,9 @@ public partial class Form1 : Form
         var filePath = fd.FileName;
         rtxtboxUserInput.Text = File.ReadAllText(filePath);
     }
+
+    void btnStop_Click(object sender, EventArgs e)
+    {
+        _player.Stop();
+    }
 }

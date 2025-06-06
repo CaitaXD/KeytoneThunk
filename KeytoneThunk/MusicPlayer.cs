@@ -5,27 +5,31 @@ namespace KeytoneThunk;
 public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposable
 {
     TimeSpan NoteDuration => TimeSpan.FromMilliseconds(50);
-
+    
+    bool _stopping;
+    
     public event Action<int>? VolumeChanged;
     public event Action<int>? BpmChanged;
 
+    public bool IsPaused { get; private set; }
     public int CurrentVolume => musicStrategy.CurrentVolume;
     public int CurrentBpm => musicStrategy.CurrentBpm;
 
 
     readonly Instrument _defaultInstrument = Instrument.AcousticGrandPiano;
 
-    public void Play(KeytoneParser keytoneInstructions)
+    public void Play(KeytoneParser keytoneInstructions, CancellationToken cancellationToken = default)
     {
-        _ = PlayAsync(keytoneInstructions).AsTask();
+        _ = PlayAsync(keytoneInstructions, cancellationToken).AsTask();
     }
 
-    public async ValueTask PlayAsync(KeytoneParser keytoneInstructions)
+    public async ValueTask PlayAsync(KeytoneParser keytoneInstructions, CancellationToken cancellationToken = default)
     {
         try
         {
-            while (keytoneInstructions.MoveNext())
+            while (!IsPaused && keytoneInstructions.MoveNext())
             {
+                if (_stopping || cancellationToken.IsCancellationRequested) return;
                 var instruction = keytoneInstructions.Current;
                 await MatchInstruction(keytoneInstructions, instruction);
             }
@@ -38,6 +42,7 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
         {
             ResetVolume();
             ResetBpm();
+            _stopping = false;
             try
             {
                 musicStrategy.ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(_defaultInstrument.Midi));
@@ -99,6 +104,23 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy) : IDisposabl
             default:
                 throw new ArgumentOutOfRangeException(nameof(instruction), instruction, null);
         }
+    }
+    
+    public void Pause()
+    {
+        IsPaused = true;
+    }
+    
+    public void Resume()
+    {
+        IsPaused = false;
+    }
+    
+    public void Stop()
+    {
+        _stopping = true;
+        ResetVolume();
+        ResetBpm();
     }
 
     static bool LastIsNote(KeytoneParser keytoneInstructions, out IKeytoneInstruction.Note lastNote)
