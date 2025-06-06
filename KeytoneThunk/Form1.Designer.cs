@@ -49,7 +49,7 @@ partial class Form1
         btnPlay.Name = "btnPlay";
         btnPlay.Size = new System.Drawing.Size(213, 86);
         btnPlay.TabIndex = 0;
-        btnPlay.Text = "Pray Musicus";
+        btnPlay.Text = "Play Music";
         btnPlay.UseVisualStyleBackColor = true;
         btnPlay.Click += button1_Click;
         // 
