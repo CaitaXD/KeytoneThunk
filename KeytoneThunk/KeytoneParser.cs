@@ -55,6 +55,8 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
             var plus = Peek(_state, 3);
             if (plus is not '+') return MatchSingleChar(result.Value);
             
+            Shift(ref _state, 3);
+            
             return new IKeytoneInstruction.BpmUp(BpmUpAmount);
         }
         
