@@ -68,4 +68,13 @@ public partial class Form1 : Form
         Seed = HashCode.Combine(Seed, Environment.TickCount);
         txtboxSeed.Text = Seed.ToString();
     }
+
+    void btnLoadText_Click(object sender, EventArgs e)
+    {
+        var fd = new OpenFileDialog();
+        fd.Filter = "Text Files|*.txt";
+        if (fd.ShowDialog() != DialogResult.OK) return;
+        var filePath = fd.FileName;
+        rtxtboxUserInput.Text = File.ReadAllText(filePath);
+    }
 }

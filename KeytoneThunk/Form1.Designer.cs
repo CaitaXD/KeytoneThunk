@@ -39,6 +39,7 @@ partial class Form1
         lblSeed = new System.Windows.Forms.Label();
         btnRandSeed = new System.Windows.Forms.Button();
         txtboxSeed = new System.Windows.Forms.MaskedTextBox();
+        btnLoadText = new System.Windows.Forms.Button();
         SuspendLayout();
         // 
         // btnPlay
@@ -127,11 +128,22 @@ partial class Form1
         txtboxSeed.Size = new System.Drawing.Size(133, 23);
         txtboxSeed.TabIndex = 10;
         // 
+        // btnLoadText
+        // 
+        btnLoadText.Location = new System.Drawing.Point(686, 275);
+        btnLoadText.Name = "btnLoadText";
+        btnLoadText.Size = new System.Drawing.Size(75, 23);
+        btnLoadText.TabIndex = 11;
+        btnLoadText.Text = "Load Text";
+        btnLoadText.UseVisualStyleBackColor = true;
+        btnLoadText.Click += btnLoadText_Click;
+        // 
         // Form1
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         ClientSize = new System.Drawing.Size(800, 450);
+        Controls.Add(btnLoadText);
         Controls.Add(txtboxSeed);
         Controls.Add(btnRandSeed);
         Controls.Add(lblSeed);
@@ -146,6 +158,8 @@ partial class Form1
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Windows.Forms.Button btnLoadText;
 
     private System.Windows.Forms.MaskedTextBox txtboxSeed;
 
