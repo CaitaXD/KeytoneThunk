@@ -2,9 +2,12 @@
 
 public interface IMusicPlayerStrategy : IDisposable
 {
+    // TODO: This is suspicious, alas im not in the mood
     int CurrentBpm { get; set; }
     int CurrentVolume { get; set; }
     int CurrentOctave { get; set; }
+    //
+    
     ValueTask PlayNoteAsync(TimeSpan duration, MidiNote note, int octave);
     ValueTask Silence(TimeSpan duration);
     void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument);
