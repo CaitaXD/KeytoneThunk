@@ -10,8 +10,8 @@ public interface IMusicPlayerStrategy : IDisposable
     
     ValueTask PlayNoteAsync(TimeSpan duration, MidiNote note, int octave);
     ValueTask Silence(TimeSpan duration);
-    void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument);
-    void MorphInstrument(IKeytoneInstruction.MorphInstrument morphInstrument);
+    void ChangeInstrument(ChangeToInstrument changeToInstrument);
+    void MorphInstrument(MorphInstrument morphInstrument);
     ValueTask PlayNoteWithInstrumentAsync(TimeSpan duration, MidiNote note, int octave, int instrumentId);
     TimeSpan BeatDelay => CurrentBpm > 0d ? TimeSpan.FromMinutes(1d/CurrentBpm) : TimeSpan.Zero;
     
@@ -32,11 +32,11 @@ public interface IMusicPlayerStrategy : IDisposable
             return ValueTask.CompletedTask;
         }
 
-        public void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)
+        public void ChangeInstrument(ChangeToInstrument changeToInstrument)
         {
         }
 
-        public void MorphInstrument(IKeytoneInstruction.MorphInstrument morphInstrument)
+        public void MorphInstrument(MorphInstrument morphInstrument)
         {
         }
 

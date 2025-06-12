@@ -48,17 +48,17 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
         return ValueTask.CompletedTask;
     }
 
-    public void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)
+    public void ChangeInstrument(ChangeToInstrument changeToInstrument)
     {
         var changeInstrumentEvent = new PatchChangeEvent(DeltaTicks(_timeStamp), Channel, changeToInstrument.Midi);
         _midiEvents.AddEvent(changeInstrumentEvent, TrackNumber);
         _currentInstrument = new Instrument(changeToInstrument.Midi);
     }
 
-    public void MorphInstrument(IKeytoneInstruction.MorphInstrument morphInstrument)
+    public void MorphInstrument(MorphInstrument morphInstrument)
     {
         int id = (_currentInstrument.Midi + morphInstrument.MorphDigit)%Instrument.Count;
-        ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(id));
+        ChangeInstrument(new ChangeToInstrument(id));
     }
 
     public ValueTask PlayNoteWithInstrumentAsync(TimeSpan duration, MidiNote note, int octave, int instrumentId)
@@ -70,9 +70,9 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
         }
 
         var prev = _currentInstrument;
-        ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(instrumentId));
+        ChangeInstrument(new ChangeToInstrument(instrumentId));
         PlayNoteAsync(duration, note, octave).AsTask().GetAwaiter().GetResult();
-        ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(prev.Midi));
+        ChangeInstrument(new ChangeToInstrument(prev.Midi));
         return ValueTask.CompletedTask;
     }
 

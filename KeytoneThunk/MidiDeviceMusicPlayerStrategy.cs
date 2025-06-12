@@ -27,13 +27,13 @@ public class MidiDeviceMusicPlayerStrategy : IMusicPlayerStrategy
         return  new ValueTask(Task.Delay(duration));
     }
 
-    public void ChangeInstrument(IKeytoneInstruction.ChangeToInstrument changeToInstrument)
+    public void ChangeInstrument(ChangeToInstrument changeToInstrument)
     {
         _midiOut.Send(MidiMessage.ChangePatch(changeToInstrument.Midi, 1));
         _currentInstrument = new Instrument(changeToInstrument.Midi);
     }
 
-    public void MorphInstrument(IKeytoneInstruction.MorphInstrument morphInstrument)
+    public void MorphInstrument(MorphInstrument morphInstrument)
     {
         int id = (_currentInstrument.Midi + morphInstrument.MorphDigit)%Instrument.Count;
         _midiOut.Send(MidiMessage.ChangePatch(id, 1));
@@ -43,9 +43,9 @@ public class MidiDeviceMusicPlayerStrategy : IMusicPlayerStrategy
     public async ValueTask PlayNoteWithInstrumentAsync(TimeSpan duration, MidiNote note, int octave, int instrumentId)
     {
         var prev = _currentInstrument;
-        ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(instrumentId));
+        ChangeInstrument(new ChangeToInstrument(instrumentId));
         await PlayNoteAsync(duration, note, octave);
-        ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(prev.Midi));
+        ChangeInstrument(new ChangeToInstrument(prev.Midi));
     }
 
     public async ValueTask PlayNoteAsync(TimeSpan duration, MidiNote note, int octave = 4)

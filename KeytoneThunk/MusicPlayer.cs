@@ -26,16 +26,16 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
         _ = PlayAsync(keytoneInstructions, cancellationToken).AsTask();
     }
 
-    public async ValueTask PlayAsync(KeytoneParser keytoneInstructions, CancellationToken cancellationToken = default)
+    public async ValueTask PlayAsync(KeytoneParser parser, CancellationToken cancellationToken = default)
     {
         Interlocked.Increment(ref _startedPlaying);
         try
         {
-            while (!IsPaused && keytoneInstructions.MoveNext())
+            while (!IsPaused && parser.MoveNext())
             {
                 if (_stopRequested || cancellationToken.IsCancellationRequested) return;
-                var instruction = keytoneInstructions.Current;
-                await MatchInstruction(keytoneInstructions, instruction);
+                var instruction = parser.Current;
+                await MatchInstruction(parser, instruction);
             }
         }
         catch (Exception ex)
@@ -44,13 +44,13 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
         }
         finally
         {
-            ResetVolume();
+            DoResetVolume();
             ResetBpm();
             _stopRequested = false;
             Interlocked.Decrement(ref _startedPlaying);
             try
             {
-                musicStrategy.ChangeInstrument(new IKeytoneInstruction.ChangeToInstrument(_defaultInstrument.Midi));
+                musicStrategy.ChangeInstrument(new ChangeToInstrument(_defaultInstrument.Midi));
             }
             catch (Exception ex)
             {
@@ -59,52 +59,52 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
         }
     }
 
-    async ValueTask MatchInstruction(KeytoneParser keytoneInstructions, IKeytoneInstruction instruction)
+    async ValueTask MatchInstruction(KeytoneParser parser, IKeytoneInstruction instruction)
     {
         const byte maxAllowedDigit = 9;
         switch (instruction)
         {
-            case IKeytoneInstruction.MorphInstrument { MorphDigit: > maxAllowedDigit }:
-                throw new ArgumentOutOfRangeException(nameof(IKeytoneInstruction.MorphInstrument.MorphDigit));
-            case IKeytoneInstruction.MorphInstrument morphInstrument:
+            case MorphInstrument { MorphDigit: > maxAllowedDigit }:
+                throw new ArgumentOutOfRangeException(nameof(MorphInstrument.MorphDigit));
+            case MorphInstrument morphInstrument:
                 musicStrategy.MorphInstrument(morphInstrument);
                 break;
-            case IKeytoneInstruction.ChangeToInstrument changeToInstrument:
+            case ChangeToInstrument changeToInstrument:
                 musicStrategy.ChangeInstrument(changeToInstrument);
                 break;
-            case IKeytoneInstruction.RepeatLastNote when LastIsNote(keytoneInstructions, out var lastNote):
+            case RepeatLastNote when LastIsNote(parser, out var lastNote):
                 await musicStrategy.PlayNoteAsync(NoteDuration, lastNote.MidiNote, musicStrategy.CurrentOctave);
                 break;
-            case IKeytoneInstruction.RepeatLastNote { Or: var or }:
-                await MatchInstruction(keytoneInstructions, or);
+            case RepeatLastNote { Or: var or }:
+                await MatchInstruction(parser, or);
                 break;
-            case IKeytoneInstruction.Silence:
+            case Silence:
                 await musicStrategy.Silence(musicStrategy.BeatDelay);
                 break;
-            case IKeytoneInstruction.OctaveUp { Octaves: var octaves }:
+            case OctaveUp { Octaves: var octaves }:
                 OctaveUp(octaves);
                 break;
-            case IKeytoneInstruction.VolumeUp:
-                VolumeUp();
+            case VolumeUp:
+                DoVolumeUp();
                 break;
-            case IKeytoneInstruction.ResetVolume:
-                ResetVolume();
+            case ResetVolume:
+                DoResetVolume();
                 break;
-            case IKeytoneInstruction.Note note:
+            case Note note:
                 await musicStrategy.PlayNoteAsync(NoteDuration, note.MidiNote, musicStrategy.CurrentOctave);
                 break;
-            case IKeytoneInstruction.SoundEffect { InstrumentId: var id }:
+            case SoundEffect { InstrumentId: var id }:
                 await musicStrategy.PlayNoteWithInstrumentAsync(2*NoteDuration, MidiNote.C, musicStrategy.CurrentOctave,
                     id);
                 break;
-            case IKeytoneInstruction.SetBpm setBpm:
+            case SetBpm setBpm:
                 SetBpm(setBpm.Bpm);
                 break;
-            case IKeytoneInstruction.BpmUp bpmUp:
+            case BpmUp bpmUp:
                 BpmUp(bpmUp.Bpm);
                 break;
-            case IKeytoneInstruction.Nop:
-                // I'm confused
+            case Nop:
+                // Do nothing
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(instruction), instruction, null);
@@ -124,13 +124,13 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
     public void Stop()
     {
         if(_startedPlaying > 0) _stopRequested = true;
-        ResetVolume();
+        DoResetVolume();
         ResetBpm();
     }
 
-    static bool LastIsNote(KeytoneParser keytoneInstructions, out IKeytoneInstruction.Note lastNote)
+    static bool LastIsNote(KeytoneParser keytoneInstructions, out Note lastNote)
     {
-        if (keytoneInstructions.TryGetPreviousInstruction(out var last) && last is IKeytoneInstruction.Note note)
+        if (keytoneInstructions.TryGetPreviousInstruction(out var last) && last is Note note)
         {
             lastNote = note;
             return true;
@@ -152,13 +152,13 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
         BpmChanged?.Invoke(musicStrategy.CurrentBpm);
     }
 
-    void VolumeUp()
+    void DoVolumeUp()
     {
         musicStrategy.CurrentVolume = Math.Clamp(musicStrategy.CurrentVolume*2, 0, sbyte.MaxValue);
         VolumeChanged?.Invoke(musicStrategy.CurrentVolume);
     }
 
-    void ResetVolume()
+    void DoResetVolume()
     {
         musicStrategy.CurrentVolume = DefaultVolume;
         VolumeChanged?.Invoke(musicStrategy.CurrentVolume);
