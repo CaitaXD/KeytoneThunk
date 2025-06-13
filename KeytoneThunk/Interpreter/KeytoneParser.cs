@@ -90,22 +90,21 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
 
     int RandomBpm()
     {
-        var r = _random.Next(60, 1200);
-        return r;
+        // Completely arbitrary range here, I have no idea what would be a good range
+        return _random.Next(60, 1200);
     }
 
     int RandomInstrument()
     {
-        var r = _random.Next(Instrument.Count);
-        return r;
+        return _random.Next(Instrument.Count);
     }
 
     static readonly ImmutableArray<Midi.Note> MidiNotes;
 
     Midi.Note RandomNote()
     {
-        var r = _random.Next(MidiNotes.Length);
-        return MidiNotes[r];
+        var index = _random.Next(MidiNotes.Length);
+        return MidiNotes[index];
     }
 
     IKeytoneInstruction LastOrNop => TryGetPreviousInstruction(out var last)
