@@ -6,7 +6,7 @@ using Note = KeytoneThunk.Midi.Note;
 namespace KeytoneThunk.Player;
 
 public sealed class MusicPlayer(
-    IMusicPlayerStrategy musicStrategy,
+    IMusicPlayerStrategy strategy,
     int defaultVolume = 50,
     int defaultBpm = 240,
     int defaultOctave = 4)
@@ -27,14 +27,14 @@ public sealed class MusicPlayer(
 
     public int Volume
     {
-        get => musicStrategy.Volume;
-        set => musicStrategy.Volume = value;
+        get => strategy.Volume;
+        set => strategy.Volume = value;
     }
 
     public int Bpm
     {
-        get => musicStrategy.Bpm;
-        set => musicStrategy.Bpm = value;
+        get => strategy.Bpm;
+        set => strategy.Bpm = value;
     }
 
     readonly Instrument _defaultInstrument = Instrument.AcousticGrandPiano;
@@ -46,6 +46,7 @@ public sealed class MusicPlayer(
 
     public async ValueTask PlayAsync(KeytoneParser parser, CancellationToken cancellationToken = default)
     {
+        // No idea if this increment needs to be atomic or not, but just in case it is
         Interlocked.Increment(ref _startedPlaying);
         ResetDefaults();
         try
@@ -64,33 +65,32 @@ public sealed class MusicPlayer(
         finally
         {
             ResetDefaults();
+            // Same as above
             Interlocked.Decrement(ref _startedPlaying);
             if (_startedPlaying == 0) _stopRequested = false;
         }
     }
 
-    async ValueTask MatchInstruction(KeytoneParser parser, IKeytoneInstruction instruction)
+    ValueTask MatchInstruction(KeytoneParser parser, IKeytoneInstruction instruction)
     {
+        BeginMatchInstruction:
         const byte maxAllowedDigit = 9;
         switch (instruction)
         {
-            case MorphInstrument { MorphDigit: > maxAllowedDigit }:
-                throw new ArgumentOutOfRangeException(nameof(MorphInstrument.MorphDigit));
             case MorphInstrument morphInstrument:
-                musicStrategy.MorphInstrument(morphInstrument);
+                ArgumentOutOfRangeException.ThrowIfGreaterThan(morphInstrument.MorphDigit, maxAllowedDigit);
+                strategy.MorphInstrument(morphInstrument);
                 break;
             case ChangeToInstrument changeToInstrument:
-                musicStrategy.ChangeInstrument(changeToInstrument);
+                strategy.ChangeInstrument(changeToInstrument);
                 break;
             case RepeatLastNote when LastIsNote(parser, out var lastNote):
-                await musicStrategy.PlayNoteAsync(MidiConverter.NoteDuration(Bpm), lastNote.MidiNote, Octave);
-                break;
+                return strategy.PlayNoteAsync(MidiConverter.NoteDuration(Bpm), lastNote.MidiNote, Octave);
             case RepeatLastNote { Or: var or }:
-                await MatchInstruction(parser, or);
-                break;
+                instruction = or;
+                goto BeginMatchInstruction; // CSharp doesn't guarantee tail call optimization
             case Silence:
-                await musicStrategy.Silence(MidiConverter.NoteDuration(10*Bpm));
-                break;
+                return strategy.Silence(MidiConverter.NoteDuration(10*Bpm));
             case OctaveUp { Octaves: var octaves }:
                 OctaveUp(octaves);
                 break;
@@ -101,13 +101,9 @@ public sealed class MusicPlayer(
                 DoResetVolume();
                 break;
             case Interpreter.Note note:
-                await musicStrategy.PlayNoteAsync(MidiConverter.NoteDuration(Bpm), note.MidiNote, Octave);
-                break;
+                return strategy.PlayNoteAsync(MidiConverter.NoteDuration(Bpm), note.MidiNote, Octave);
             case SoundEffect { InstrumentId: var id }:
-                await musicStrategy.PlayNoteWithInstrumentAsync(MidiConverter.NoteDuration(10*Bpm), Note.C,
-                    Octave,
-                    id);
-                break;
+                return strategy.PlayNoteWithInstrumentAsync(MidiConverter.NoteDuration(10*Bpm), Note.C, Octave, id);
             case SetBpm setBpm:
                 SetBpm(setBpm.Bpm);
                 break;
@@ -120,6 +116,7 @@ public sealed class MusicPlayer(
             default:
                 throw new ArgumentOutOfRangeException(nameof(instruction), instruction, null);
         }
+        return ValueTask.CompletedTask;
     }
 
     public void Pause()
@@ -174,7 +171,7 @@ public sealed class MusicPlayer(
             DoResetBpm();
             DoResetOctave();
             DoResetVolume();
-            musicStrategy.ChangeInstrument(new ChangeToInstrument(_defaultInstrument.Midi));
+            strategy.ChangeInstrument(new ChangeToInstrument(_defaultInstrument.Midi));
         }
         catch (Exception ex)
         {
@@ -211,7 +208,7 @@ public sealed class MusicPlayer(
     {
         try
         {
-            musicStrategy.Dispose();
+            strategy.Dispose();
         }
         catch (Exception ex)
         {

@@ -19,7 +19,6 @@ public interface IMusicPlayerStrategy : IDisposable
     {
         public int Bpm { get; set; }
         public int Volume { get; set; }
-        public int Octave { get; set; }
 
         public ValueTask PlayNoteAsync(TimeSpan duration, Note note, int octave)
         {
