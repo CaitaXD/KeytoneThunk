@@ -42,12 +42,13 @@ public class MidiExportFileMusicPlayerStrategy : IMusicPlayerStrategy
 
     public ValueTask PlayNoteAsync(TimeSpan duration, Note note, int octave)
     {
+        int ticksDuration = Ticks(duration)/4;
         int noteNumber = MidiConverter.Note(note, octave);
-        var startNodeEvent = new NoteOnEvent(_timeStamp, Channel, noteNumber, Volume, Ticks(duration));
-        var stopNodeEvent = new NoteOnEvent(_timeStamp + Ticks(duration), Channel, noteNumber, 0, 0);
+        var startNodeEvent = new NoteOnEvent(_timeStamp, Channel, noteNumber, Volume, ticksDuration);
+        var stopNodeEvent = new NoteOnEvent(_timeStamp + ticksDuration, Channel, noteNumber, 0, 0);
         _midiEvents.AddEvent(startNodeEvent, TrackNumber);
         _midiEvents.AddEvent(stopNodeEvent, TrackNumber);
-        _timeStamp += DeltaTicksPerQuarterNote;
+        _timeStamp += ticksDuration;
         return ValueTask.CompletedTask;
     }
 
