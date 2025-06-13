@@ -64,16 +64,8 @@ public sealed class MusicPlayer(
         finally
         {
             ResetDefaults();
-            _stopRequested = false;
             Interlocked.Decrement(ref _startedPlaying);
-            try
-            {
-                musicStrategy.ChangeInstrument(new ChangeToInstrument(_defaultInstrument.Midi));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+            if (_startedPlaying == 0) _stopRequested = false;
         }
     }
 
@@ -97,7 +89,7 @@ public sealed class MusicPlayer(
                 await MatchInstruction(parser, or);
                 break;
             case Silence:
-                await musicStrategy.Silence(MidiConverter.NoteDuration(Bpm));
+                await musicStrategy.Silence(MidiConverter.NoteDuration(10*Bpm));
                 break;
             case OctaveUp { Octaves: var octaves }:
                 OctaveUp(octaves);
@@ -112,7 +104,7 @@ public sealed class MusicPlayer(
                 await musicStrategy.PlayNoteAsync(MidiConverter.NoteDuration(Bpm), note.MidiNote, Octave);
                 break;
             case SoundEffect { InstrumentId: var id }:
-                await musicStrategy.PlayNoteWithInstrumentAsync(MidiConverter.NoteDuration(Bpm), Note.C,
+                await musicStrategy.PlayNoteWithInstrumentAsync(MidiConverter.NoteDuration(10*Bpm), Note.C,
                     Octave,
                     id);
                 break;
@@ -143,8 +135,6 @@ public sealed class MusicPlayer(
     public void Stop()
     {
         if (_startedPlaying > 0) _stopRequested = true;
-        DoResetVolume();
-        DoResetBpm();
     }
 
     static bool LastIsNote(KeytoneParser keytoneInstructions, out Interpreter.Note lastNote)
@@ -179,9 +169,17 @@ public sealed class MusicPlayer(
 
     void ResetDefaults()
     {
-        DoResetBpm();
-        DoResetOctave();
-        DoResetVolume();
+        try
+        {
+            DoResetBpm();
+            DoResetOctave();
+            DoResetVolume();
+            musicStrategy.ChangeInstrument(new ChangeToInstrument(_defaultInstrument.Midi));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
     }
 
     void DoResetVolume()
