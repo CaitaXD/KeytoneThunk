@@ -1,4 +1,6 @@
-using System.Diagnostics;
+using KeytoneThunk.Interpreter;
+using KeytoneThunk.Player;
+using KeytoneThunk.Player.Strategy;
 
 namespace KeytoneThunk;
 
@@ -6,7 +8,7 @@ public partial class Form1 : Form
 {
     static int _seed = Environment.TickCount;
 
-    readonly MusicPlayer _player = new(new MidiDeviceMusicPlayerStrategy());
+    readonly MusicPlayer _musicPlayer = new(new MidiDeviceMusicPlayerStrategy());
     //readonly MusicPlayer _player = new(IMusicPlayerStrategy.Null);
 
     const string Test = """
@@ -17,11 +19,11 @@ public partial class Form1 : Form
     public Form1()
     {
         InitializeComponent();
-        _player.VolumeChanged += VolumeChanged;
-        _player.BpmChanged += BpmChanged;
+        _musicPlayer.VolumeChanged += VolumeChanged;
+        _musicPlayer.BpmChanged += BpmChanged;
         rtxtboxUserInput.Text = Test;
-        VolumeChanged(_player.CurrentVolume);
-        BpmChanged(_player.CurrentBpm);
+        VolumeChanged(_musicPlayer.DefaultVolume);
+        BpmChanged(_musicPlayer.DefaultBpm);
         txtboxSeed.Text = _seed.ToString();
         txtboxSeed.TextChanged += TxtboxSeed_TextChanged;
     }
@@ -51,7 +53,7 @@ public partial class Form1 : Form
             rtxtboxUserInput.Text,
             _seed
         );
-        _player.Play(tokens);
+        _musicPlayer.Play(tokens);
     }
 
     void btnSaveToMidiFile_Click(object sender, EventArgs e)
@@ -107,6 +109,6 @@ public partial class Form1 : Form
 
     void btnStop_Click(object sender, EventArgs e)
     {
-        _player.Stop();
+        _musicPlayer.Stop();
     }
 }

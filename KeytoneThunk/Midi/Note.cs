@@ -1,6 +1,6 @@
-﻿namespace KeytoneThunk;
+﻿namespace KeytoneThunk.Midi;
 
-public enum MidiNote
+public enum Note
 {
     A = 69,
     B = 71,

@@ -1,4 +1,4 @@
-﻿namespace KeytoneThunk;
+﻿namespace KeytoneThunk.Midi;
 
 public readonly record struct MidiMessage(int RawData)
 {

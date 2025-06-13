@@ -1,4 +1,4 @@
-﻿namespace KeytoneThunk;
+﻿namespace KeytoneThunk.Interpreter;
 
 public readonly struct Instrument
 {

@@ -1,8 +1,10 @@
-﻿namespace KeytoneThunk;
+﻿using KeytoneThunk.Midi;
+
+namespace KeytoneThunk.Interpreter;
 
 public interface IKeytoneInstruction;
 
-public readonly record struct Note(MidiNote MidiNote) : IKeytoneInstruction;
+public readonly record struct Note(Midi.Note MidiNote) : IKeytoneInstruction;
 
 public readonly record struct ChangeToInstrument(int Midi) : IKeytoneInstruction;
 

@@ -1,4 +1,6 @@
-﻿namespace KeytoneThunk.unit.tst;
+﻿using KeytoneThunk.Midi;
+
+namespace KeytoneThunk.unit.tst;
 using KeytoneThunk;
 
 [TestClass]
@@ -20,7 +22,7 @@ public sealed class MidiConverter
     {
         // arrange
         // act
-        int actualMidi = KeytoneThunk.MidiConverter.FromHertz(givenFrequency);
+        int actualMidi = Midi.MidiConverter.FromHertz(givenFrequency);
         // assert
         Assert.AreEqual(expectedMidi, actualMidi);
     }
@@ -32,21 +34,21 @@ public sealed class MidiConverter
     {
         // arrange
         // act
-        double actualFrequency = KeytoneThunk.MidiConverter.ToHertz(givenMidi);
+        double actualFrequency = Midi.MidiConverter.ToHertz(givenMidi);
         // assert
         Assert.AreEqual(expectedFrequency, actualFrequency, double.Epsilon);
     }
     
     [TestMethod]
-    [DataRow(MidiA4, MidiNote.A)]
-    [DataRow(MidiA0, MidiNote.A, 0)]
-    [DataRow(MidiC4, MidiNote.C)]
-    [DataRow(MidiC8, MidiNote.C, 8)]
-    public void Correct_Midi_From_Note_Conversion(int expectedMidi, MidiNote note, int octave = 4)
+    [DataRow(MidiA4, Note.A)]
+    [DataRow(MidiA0, Note.A, 0)]
+    [DataRow(MidiC4, Note.C)]
+    [DataRow(MidiC8, Note.C, 8)]
+    public void Correct_Midi_From_Note_Conversion(int expectedMidi, Note note, int octave = 4)
     {
         // arrange
         // act
-        int actualMidi = KeytoneThunk.MidiConverter.Note(note, octave);
+        int actualMidi = Midi.MidiConverter.Note(note, octave);
         // assert
         Assert.AreEqual(expectedMidi, actualMidi);
     }

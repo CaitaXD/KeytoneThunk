@@ -1,14 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using KeytoneThunk.Midi;
 
-namespace KeytoneThunk;
+namespace KeytoneThunk.Interpreter;
 
 public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnumerator<IKeytoneInstruction>
 {
     static KeytoneParser()
     {
-        MidiNotes = ImmutableCollectionsMarshal.AsImmutableArray(Enum.GetValues<MidiNote>());
+        MidiNotes = ImmutableCollectionsMarshal.AsImmutableArray(Enum.GetValues<Midi.Note>());
     }
 
     readonly Random _random = randomSeed is null ? Random.Shared : new Random(randomSeed.Value);
@@ -67,13 +68,13 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
     {
         return ch switch
         {
-            'A' or 'a' => new Note(MidiNote.A),
-            'B' or 'b' => new Note(MidiNote.B),
-            'C' or 'c' => new Note(MidiNote.C),
-            'D' or 'd' => new Note(MidiNote.D),
-            'E' or 'e' => new Note(MidiNote.E),
-            'F' or 'f' => new Note(MidiNote.F),
-            'G' or 'g' => new Note(MidiNote.G),
+            'A' or 'a' => new Note(Midi.Note.A),
+            'B' or 'b' => new Note(Midi.Note.B),
+            'C' or 'c' => new Note(Midi.Note.C),
+            'D' or 'd' => new Note(Midi.Note.D),
+            'E' or 'e' => new Note(Midi.Note.E),
+            'F' or 'f' => new Note(Midi.Note.F),
+            'G' or 'g' => new Note(Midi.Note.G),
             '+' => new VolumeUp(),
             '-' => new ResetVolume(),
             ' ' => new Silence(),
@@ -99,9 +100,9 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
         return r;
     }
 
-    static readonly ImmutableArray<MidiNote> MidiNotes;
+    static readonly ImmutableArray<Midi.Note> MidiNotes;
 
-    MidiNote RandomNote()
+    Midi.Note RandomNote()
     {
         var r = _random.Next(MidiNotes.Length);
         return MidiNotes[r];

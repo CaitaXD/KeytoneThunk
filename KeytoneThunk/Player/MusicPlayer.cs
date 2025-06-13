@@ -1,23 +1,41 @@
-﻿using System.Diagnostics;
+﻿using KeytoneThunk.Interpreter;
+using KeytoneThunk.Midi;
+using KeytoneThunk.Player.Strategy;
+using Note = KeytoneThunk.Midi.Note;
 
-namespace KeytoneThunk;
+namespace KeytoneThunk.Player;
 
-public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultVolume = 50, int defaultBpm = 240) : IDisposable
+public sealed class MusicPlayer(
+    IMusicPlayerStrategy musicStrategy,
+    int defaultVolume = 50,
+    int defaultBpm = 240,
+    int defaultOctave = 4)
+    : IDisposable
 {
-    TimeSpan NoteDuration => TimeSpan.FromMilliseconds(50);
-    
     bool _stopRequested;
     int _startedPlaying;
-    
+
+    public readonly int DefaultOctave = defaultOctave;
+    public readonly int DefaultVolume = defaultVolume;
+    public readonly int DefaultBpm = defaultBpm;
+
     public event Action<int>? VolumeChanged;
     public event Action<int>? BpmChanged;
 
-    public int DefaultVolume { get; set; } = defaultVolume;
-    public int DefaultBpm { get; set; } = defaultBpm;
+    public int Octave { get; set; } = defaultOctave;
     public bool IsPaused { get; private set; }
-    public int CurrentVolume => musicStrategy.CurrentVolume;
-    public int CurrentBpm => musicStrategy.CurrentBpm;
 
+    public int Volume
+    {
+        get => musicStrategy.Volume;
+        set => musicStrategy.Volume = value;
+    }
+
+    public int Bpm
+    {
+        get => musicStrategy.Bpm;
+        set => musicStrategy.Bpm = value;
+    }
 
     readonly Instrument _defaultInstrument = Instrument.AcousticGrandPiano;
 
@@ -29,6 +47,7 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
     public async ValueTask PlayAsync(KeytoneParser parser, CancellationToken cancellationToken = default)
     {
         Interlocked.Increment(ref _startedPlaying);
+        ResetDefaults();
         try
         {
             while (!IsPaused && parser.MoveNext())
@@ -44,8 +63,7 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
         }
         finally
         {
-            DoResetVolume();
-            ResetBpm();
+            ResetDefaults();
             _stopRequested = false;
             Interlocked.Decrement(ref _startedPlaying);
             try
@@ -73,13 +91,13 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
                 musicStrategy.ChangeInstrument(changeToInstrument);
                 break;
             case RepeatLastNote when LastIsNote(parser, out var lastNote):
-                await musicStrategy.PlayNoteAsync(NoteDuration, lastNote.MidiNote, musicStrategy.CurrentOctave);
+                await musicStrategy.PlayNoteAsync(MidiConverter.NoteDuration(Bpm), lastNote.MidiNote, Octave);
                 break;
             case RepeatLastNote { Or: var or }:
                 await MatchInstruction(parser, or);
                 break;
             case Silence:
-                await musicStrategy.Silence(musicStrategy.BeatDelay);
+                await musicStrategy.Silence(MidiConverter.NoteDuration(Bpm));
                 break;
             case OctaveUp { Octaves: var octaves }:
                 OctaveUp(octaves);
@@ -90,11 +108,12 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
             case ResetVolume:
                 DoResetVolume();
                 break;
-            case Note note:
-                await musicStrategy.PlayNoteAsync(NoteDuration, note.MidiNote, musicStrategy.CurrentOctave);
+            case Interpreter.Note note:
+                await musicStrategy.PlayNoteAsync(MidiConverter.NoteDuration(Bpm), note.MidiNote, Octave);
                 break;
             case SoundEffect { InstrumentId: var id }:
-                await musicStrategy.PlayNoteWithInstrumentAsync(2*NoteDuration, MidiNote.C, musicStrategy.CurrentOctave,
+                await musicStrategy.PlayNoteWithInstrumentAsync(MidiConverter.NoteDuration(Bpm), Note.C,
+                    Octave,
                     id);
                 break;
             case SetBpm setBpm:
@@ -110,27 +129,27 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
                 throw new ArgumentOutOfRangeException(nameof(instruction), instruction, null);
         }
     }
-    
+
     public void Pause()
     {
         IsPaused = true;
     }
-    
+
     public void Resume()
     {
         IsPaused = false;
     }
-    
+
     public void Stop()
     {
-        if(_startedPlaying > 0) _stopRequested = true;
+        if (_startedPlaying > 0) _stopRequested = true;
         DoResetVolume();
-        ResetBpm();
+        DoResetBpm();
     }
 
-    static bool LastIsNote(KeytoneParser keytoneInstructions, out Note lastNote)
+    static bool LastIsNote(KeytoneParser keytoneInstructions, out Interpreter.Note lastNote)
     {
-        if (keytoneInstructions.TryGetPreviousInstruction(out var last) && last is Note note)
+        if (keytoneInstructions.TryGetPreviousInstruction(out var last) && last is Interpreter.Note note)
         {
             lastNote = note;
             return true;
@@ -142,40 +161,52 @@ public sealed class MusicPlayer(IMusicPlayerStrategy musicStrategy, int defaultV
 
     void BpmUp(int bpm)
     {
-        musicStrategy.CurrentBpm = Math.Clamp(musicStrategy.CurrentBpm + bpm, 0, int.MaxValue);
-        BpmChanged?.Invoke(musicStrategy.CurrentBpm);
+        Bpm = Math.Clamp(Bpm + bpm, 0, int.MaxValue);
+        BpmChanged?.Invoke(Bpm);
     }
 
     void SetBpm(int bpm)
     {
-        musicStrategy.CurrentBpm = bpm;
-        BpmChanged?.Invoke(musicStrategy.CurrentBpm);
+        Bpm = bpm;
+        BpmChanged?.Invoke(Bpm);
     }
 
     void DoVolumeUp()
     {
-        musicStrategy.CurrentVolume = Math.Clamp(musicStrategy.CurrentVolume*2, 0, sbyte.MaxValue);
-        VolumeChanged?.Invoke(musicStrategy.CurrentVolume);
+        Volume = Math.Clamp(Volume*2, 0, sbyte.MaxValue);
+        VolumeChanged?.Invoke(Volume);
+    }
+
+    void ResetDefaults()
+    {
+        DoResetBpm();
+        DoResetOctave();
+        DoResetVolume();
     }
 
     void DoResetVolume()
     {
-        musicStrategy.CurrentVolume = DefaultVolume;
-        VolumeChanged?.Invoke(musicStrategy.CurrentVolume);
+        Volume = DefaultVolume;
+        VolumeChanged?.Invoke(Volume);
     }
 
-    void ResetBpm()
+    void DoResetBpm()
     {
-        musicStrategy.CurrentBpm = DefaultBpm;
-        BpmChanged?.Invoke(musicStrategy.CurrentBpm);
+        Bpm = DefaultBpm;
+        BpmChanged?.Invoke(Bpm);
+    }
+
+    void DoResetOctave()
+    {
+        Octave = Math.Clamp(DefaultOctave, 1, 8);
     }
 
     void OctaveUp(int octave)
     {
-        if (musicStrategy.CurrentOctave < 8)
-            musicStrategy.CurrentOctave += octave;
+        if (Octave < 8)
+            Octave += octave;
         else
-            musicStrategy.CurrentOctave = 4;
+            Octave = 4;
     }
 
     public void Dispose()
