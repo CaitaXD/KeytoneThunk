@@ -1,5 +1,6 @@
 ﻿namespace KeytoneThunk.Midi;
 
+// The values bellow model the forth octave of the note based on MiDi especification.
 public enum Note
 {
     A = 69,

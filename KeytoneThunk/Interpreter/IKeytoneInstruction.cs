@@ -2,6 +2,10 @@
 
 namespace KeytoneThunk.Interpreter;
 
+/// <summary>
+///     Interface represents a keytone instruction trough data polimorfism
+/// </summary>
+
 public interface IKeytoneInstruction;
 
 public readonly record struct Note(Midi.Note MidiNote) : IKeytoneInstruction;

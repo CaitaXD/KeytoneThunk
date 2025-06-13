@@ -1,5 +1,10 @@
 ﻿namespace KeytoneThunk.Interpreter;
 
+/// <summary>
+///     This structer models the instrument from the MiDi specification
+///     A lista de intrumentos foi retirada de : https://fmslogo.sourceforge.io/manual/midi-instrument.html
+/// </summary>
+
 public readonly struct Instrument
 {
     public readonly int Midi;
@@ -10,7 +15,7 @@ public readonly struct Instrument
         ArgumentOutOfRangeException.ThrowIfGreaterThan(midi, 127);
         Midi = midi;
     }
-    
+
     public static Instrument AcousticGrandPiano = new(0);
     public static Instrument BrightAcousticPiano = new(1);
     public static Instrument ElectricGrandPiano = new(2);
@@ -111,7 +116,7 @@ public readonly struct Instrument
     public static Instrument Fx2Soundtrack = new(97);
     public static Instrument Fx3Crystal = new(98);
     public static Instrument Fx4Atmosphere = new(99);
-    public static Instrument Fx5Brightness = new(100);        
+    public static Instrument Fx5Brightness = new(100);
     public static Instrument Fx6Goblins = new(101);
     public static Instrument Fx7Echoes = new(102);
     public static Instrument Fx8SciFi = new(103);
@@ -139,6 +144,6 @@ public readonly struct Instrument
     public static Instrument Helicopter = new(125);
     public static Instrument Applause = new(126);
     public static Instrument Gunshot = new(127);
-    
+
     public const int Count = 128;
 }

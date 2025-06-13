@@ -5,6 +5,8 @@ public readonly record struct MidiMessage(int RawData)
     public static implicit operator int(MidiMessage midiMessage) => midiMessage.RawData;
     public static implicit operator MidiMessage(int rawData) => new(rawData);
 
+    // One int made from 3 bit ordered by big endian
+    // Based on : https://midi.org/summary-of-midi-1-0-messages
     public MidiMessage(int status, int data1, int data2)
         // Byte magic from the midi spec
         : this(status + (data1 << 8) + (data2 << 16))

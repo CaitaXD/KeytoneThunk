@@ -32,6 +32,8 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
         char? result = Shift(ref _state);
         if (!result.HasValue) return LastOrNop;
 
+        //Searches for R+ OR R-
+
         if (result.Value == 'R')
         {
             result = Shift(ref _state);
@@ -44,6 +46,8 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
                 _ => LastOrNop,
             };
         }
+
+        //Searches for Bpm+
 
         if (result.Value == 'B')
         {
@@ -111,6 +115,13 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
         ? last
         : new Nop();
 
+    /// <summary>
+    ///     Consumes chars from the parser.
+    /// </summary>
+    /// <param name="state"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    
     static char? Shift(ref ReadOnlyMemory<char> state, int count = 1)
     {
         if (state.Length < count) return null;
@@ -119,6 +130,13 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
         return result;
     }
 
+    /// <summary>
+    ///     Advances the parser without consuming .
+    /// </summary>
+    /// <param name="state"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    
     static char? Peek(ReadOnlyMemory<char> state, int count = 1)
     {
         if (state.Length < count) return null;
