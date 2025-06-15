@@ -14,7 +14,8 @@ public sealed class KeytoneParser(string input, int? randomSeed = null) : IEnume
 
     readonly Random _random = randomSeed is null ? Random.Shared : new Random(randomSeed.Value);
     const int BpmUpAmount = 80;
-    const int RingSoundEffectId = 125 - 1; // 1 Based Indexing
+
+    const int RingSoundEffectId = 125 - 1;     // 1 Based Indexing
 
     ReadOnlyMemory<char> _state = input.AsMemory();
     readonly ReadOnlyMemory<char> _input = input.AsMemory();
