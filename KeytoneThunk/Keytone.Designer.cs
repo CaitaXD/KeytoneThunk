@@ -47,7 +47,7 @@ partial class Form1
         // 
         btnPlay.Location = new System.Drawing.Point(219, 332);
         btnPlay.Name = "btnPlay";
-        btnPlay.Size = new System.Drawing.Size(213, 86);
+        btnPlay.Size = new System.Drawing.Size(250, 86);
         btnPlay.TabIndex = 0;
         btnPlay.Text = "Play Music";
         btnPlay.UseVisualStyleBackColor = true;
@@ -63,7 +63,7 @@ partial class Form1
         // 
         // btnSaveToMidiFile
         // 
-        btnSaveToMidiFile.Location = new System.Drawing.Point(36, 389);
+        btnSaveToMidiFile.Location = new System.Drawing.Point(36, 350);
         btnSaveToMidiFile.Name = "btnSaveToMidiFile";
         btnSaveToMidiFile.Size = new System.Drawing.Size(109, 49);
         btnSaveToMidiFile.TabIndex = 2;
@@ -101,7 +101,7 @@ partial class Form1
         lblBpm.Name = "lblBpm";
         lblBpm.Size = new System.Drawing.Size(65, 24);
         lblBpm.TabIndex = 5;
-        lblBpm.Text = "Bpm";
+        lblBpm.Text = "BPM";
         // 
         // lblSeed
         // 
@@ -141,9 +141,9 @@ partial class Form1
         // 
         // btnStop
         // 
-        btnStop.Location = new System.Drawing.Point(438, 332);
+        btnStop.Location = new System.Drawing.Point(500, 332);
         btnStop.Name = "btnStop";
-        btnStop.Size = new System.Drawing.Size(63, 86);
+        btnStop.Size = new System.Drawing.Size(250, 86);
         btnStop.TabIndex = 12;
         btnStop.Text = "Stop\r\n";
         btnStop.UseVisualStyleBackColor = true;
