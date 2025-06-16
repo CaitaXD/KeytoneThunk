@@ -30,6 +30,8 @@
   - int Volume { get; set; }
   - int Bpm { get; set; }
   - int Octave { get; set; }
+  - event VolumeChanged(int)
+  - event BpmChanged(int)
 - Methods:
   - void Play(KeytoneParser tokens, CancellationToken cancellationToken = default)
   - ValueTask PlayAsync(KeytoneParser parser, CancellationToken cancellationToken = default)
