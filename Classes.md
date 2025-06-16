@@ -26,7 +26,6 @@
 
 ### MusicPlayer (Class)
 - Properties:
-  - Instrument CurrentInstrument { get; }
   - int Volume { get; set; }
   - int Bpm { get; set; }
   - int Octave { get; set; }
