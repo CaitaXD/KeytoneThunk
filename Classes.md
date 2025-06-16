@@ -34,7 +34,7 @@
   - void Play(KeytoneParser tokens, CancellationToken cancellationToken = default)
   - ValueTask PlayAsync(KeytoneParser parser, CancellationToken cancellationToken = default)
 
-### KeytoneParser (Class) implements IEnumerator<IKeytoneInstruction>
+### KeytoneParser (Class) implements IEnumerator\<IKeytoneInstruction\>
 - Methods:
   - bool MoveNext()
   - IKeytoneInstruction Current { get; }
